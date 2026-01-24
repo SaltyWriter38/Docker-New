@@ -1,0 +1,37 @@
+{
+  "name": "PX4 (Linux Native)",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "../..",
+    "args": {
+      "USERNAME": "developer",
+      "USER_UID": "1000",
+      "USER_GID": "1000"
+    }
+  },
+  "remoteUser": "developer",
+  "workspaceFolder": "/home/developer/workspace",
+  "mounts": [
+    "source=${localWorkspaceFolder}/workspace,target=/home/developer/workspace,type=bind",
+    // Native Linux X11 Mount
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
+  ],
+  "containerEnv": {
+    // On native Linux, we use the host display directly
+    "DISPLAY": "${localEnv:DISPLAY}",
+    "NVIDIA_VISIBLE_DEVICES": "all",
+    "NVIDIA_DRIVER_CAPABILITIES": "all",
+    "QT_X11_NO_MITSHM": "1"
+  },
+  "runArgs": [
+    "--privileged",
+    "--net=host",
+    "--gpus=all"
+  ],
+  "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-vscode.cpptools-extension-pack", "ms-vscode.cmake-tools", "ms-python.python"]
+    }
+  }
+}

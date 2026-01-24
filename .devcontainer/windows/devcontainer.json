@@ -49,7 +49,8 @@
 {
   "name": "PX4 ROS2 WSLg",
   "build": {
-    "dockerfile": "Dockerfile",
+    "dockerfile": "../Dockerfile",
+    "context": "../..",
     "args": {
       "USERNAME": "developer",
       "USER_UID": "1000",
@@ -61,7 +62,6 @@
   "workspaceFolder": "/home/developer/workspace",
   "mounts": [
     "source=${localWorkspaceFolder}/workspace,target=/home/developer/workspace,type=bind",
-    // The lines below match your course screenshot
     "source=/usr/lib/wsl,target=/usr/lib/wsl,type=bind,readonly",
     "source=/mnt/wslg,target=/mnt/wslg,type=bind",
     "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
