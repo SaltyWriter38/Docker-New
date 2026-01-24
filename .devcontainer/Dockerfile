@@ -49,6 +49,18 @@ RUN cd /tmp && \
     ldconfig /usr/local/lib/ && \
     cd / && rm -rf /tmp/Micro-XRCE-DDS-Agent
 
+RUN apt-get update && apt-get install -y \
+    tigervnc-standalone-server \
+    xfce4 \
+    xfce4-goodies \
+    novnc \
+    python3-websockify \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://sourceforge.net/projects/virtualgl/files/3.1/virtualgl_3.1_amd64.deb && \
+    dpkg -i virtualgl_3.1_amd64.deb && \
+    rm virtualgl_3.1_amd64.deb
+
 # 7. Create User and Fix Permissions
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -s /bin/bash \
