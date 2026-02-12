@@ -12,37 +12,23 @@
   "remoteUser": "developer",
   "containerUser": "developer",
   "workspaceFolder": "/home/developer/workspace",
-  
-  // 1. CLEAN MOUNTS: Removed all /mnt/wslg and /usr/lib/wsl mounts.
-  // This prevents the "Mount denied" crash on the lab machines.
   "mounts": [
-    "source=${localWorkspaceFolder}/workspace,target=/home/developer/workspace,type=bind"
+    "source=${localWorkspaceFolder},target=/home/developer/workspace,type=bind"
   ],
-
   "containerEnv": {
     "WORKSPACE_DIR": "/home/developer",
-    
-    // 2. VNC DISPLAY: Set to :1 because VNC usually runs on port 5901.
     "DISPLAY": ":1",
-    
-    // 3. GPU SETTINGS: Keep these so VirtualGL can find the NVIDIA card.
     "NVIDIA_VISIBLE_DEVICES": "all",
     "NVIDIA_DRIVER_CAPABILITIES": "all",
-    "QT_X11_NO_MITSHM": "1" 
+    "QT_X11_NO_MITSHM": "1"
   },
-
-  // 4. PORT FORWARDING: Open ports for VNC (5901) and Web Viewer (6080).
   "forwardPorts": [5901, 6080],
-
   "runArgs": [
-    "--privileged",
-    "--net=host",
-    // 5. GPU ENABLE: Docker Desktop handles this natively without manual mounts.
-    "--gpus=all"
+    "--gpus=all",
+    "--cap-add=SYS_ADMIN",
+    "--device=/dev/fuse"
   ],
-
-  "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
-  
+  "postCreateCommand": "if [ -f /home/developer/scripts/postCreation.sh ]; then bash /home/developer/scripts/postCreation.sh; else echo 'Script not found'; fi",
   "customizations": {
     "vscode": {
       "extensions": [
