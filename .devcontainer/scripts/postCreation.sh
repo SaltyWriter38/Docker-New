@@ -4,6 +4,9 @@
 
 echo ">>> STARTING POST-CREATION SETUP <<<"
 
+sudo chown -R $USER:$USER /home/developer/workspace
+git config --global --add safe.directory /home/developer/workspace
+
 # 1. Run Helper Script
 if [ -f "/home/developer/scripts/helper.sh" ]; then
     echo "Generating helper scripts..."

@@ -73,8 +73,8 @@ RUN groupadd --gid $USER_GID $USERNAME \
 
 # --- SCRIPTS & WORKSPACE ---
 RUN mkdir -p /home/$USERNAME/scripts
-COPY scripts/helper.sh /home/$USERNAME/scripts/helper.sh
-COPY scripts/postCreation.sh /home/$USERNAME/scripts/postCreation.sh
+COPY .devcontainer/scripts/helper.sh /home/$USERNAME/scripts/helper.sh
+COPY .devcontainer/scripts/postCreation.sh /home/$USERNAME/scripts/postCreation.sh
 RUN chmod +x /home/$USERNAME/scripts/*.sh && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME/scripts
 
