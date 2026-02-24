@@ -32,7 +32,7 @@ RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://archive.ubuntu.com/ubuntu
         libeigen3-dev libopencv-dev \
         # VNC, Desktop & VirtualGL Dependencies (FIXED HERE)
         tigervnc-standalone-server xfce4 xfce4-goodies novnc python3-websockify \
-        libegl1-mesa libgl1-mesa-glx libgl1-mesa-dri && \
+        libegl1-mesa libgl1-mesa-glx libgl1-mesa-dri dos2unix && \
     rm -rf /var/lib/apt/lists/*
 
 # --- PYTHON PACKAGES ---
@@ -75,7 +75,9 @@ RUN groupadd --gid $USER_GID $USERNAME \
 RUN mkdir -p /home/$USERNAME/scripts
 COPY scripts/helper.sh /home/$USERNAME/scripts/helper.sh
 COPY scripts/postCreation.sh /home/$USERNAME/scripts/postCreation.sh
+COPY scripts/start_vnc.sh /home/$USERNAME/scripts/start_vnc.sh
 RUN chmod +x /home/$USERNAME/scripts/*.sh && \
+    dos2unix /home/$USERNAME/scripts/*.sh && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME/scripts
 
 RUN mkdir -p /home/$USERNAME/workspace && \
