@@ -1,4 +1,5 @@
-PX4-Autopilot/*
-ros2_ws/*
-__pycache__
+PX4-Autopilot/
+ros2_ws/
+
+__pycache__/
 *.pyc

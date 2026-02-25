@@ -6,7 +6,7 @@ Follow these instructions to fully set up the container.
 
 3. Install the 'Dev Containers' extension in VS Code. 
 
-4. Clone the repository TO YOUR C: DRIVE. Nowhere else. 
+4. Clone the repository TO YOUR C: DRIVE (OR ANOTHER LOCAL DRIVE). Nowhere else. 
 
 5. Navigate into the folder containing the Docker Container. 
 
