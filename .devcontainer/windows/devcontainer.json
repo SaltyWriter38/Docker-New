@@ -83,7 +83,7 @@
     "--gpus=all",
     "--device=/dev/dxg"
   ],
-  "postCreateCommand": "export VNC_ENABLED=true && bash /home/developer/scripts/postCreation.sh",
+  "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
   "customizations": {
     "vscode": {
       "extensions": [
