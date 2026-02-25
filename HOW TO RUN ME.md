@@ -10,6 +10,8 @@ Follow these instructions to fully set up the container.
 
 5. Navigate into the folder containing the Docker Container. 
 
++ CHECKOUT TO THE MOST RECENT BRANCH
+
 6. Control + Shift + P > 'Dev Containers: Open Folder in Container'. 
 
 7. Select container type (VNC always works, but is slow). 
