@@ -6,6 +6,9 @@ cd ros2_ws
 colcon build --packages-select px4_msgs px4_offboard
 source install/setup.bash
 
+if you modify your script then you shouldn't need to rebuild px4_msgs the second time
+(TODO BUILD PX4_MSGS IN THE SETUP SCRIPT)
+
 make sure px4 is running (should be already)
 make sure the MicroXRCEAgent is running (should be already)
 ros2 run px4_offboard offboard_test

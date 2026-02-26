@@ -1,0 +1,11 @@
+rerun the simulation without rebuilding:
+
+pkill -f "bin/px4" 
+pkill -f "gz sim"
+/home/developer/scripts/run_simulation.sh
+
+world file should now be baylands, launches onto a road with some grass
+world files require a set of 7 plugins to work with this drone
+see default in default.sdf and in worlds/baylands.sdf
+
+I HAVE NOT TESTED IF THIS LAUNCHES THE RIGHT WORLD FILE ON STARTUP / FIRST BUILD YET

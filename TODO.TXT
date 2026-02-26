@@ -1,0 +1,10 @@
+IMPLEMENTATION:
+ - TO DO !!! MUST UPDATE helper.sh, postCreation.sh, start_vnc.sh TO POINT TO /workspace/scripts RATHER THAN /home/developer/scripts AS THESE SOMETIMES NEED CHANGING AND ARENT IN OUR GIT REPO !!!
+ THIS NEEDS FIXING BEFORE THE NEW WORLD FILE WILL LAUNCH BUT I HAVE TO GO A PRACTICAL !
+- new module for testing, not called px4_something !
+- launch file
+- world model in launch file? or does this come into the px4 launch
+ 
+TECH SHIT:
+- way to restart px4 without rebuilding it (probably will fix battery warning as well)
+- WSL working and replicating the functionality of vnc
