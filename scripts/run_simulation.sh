@@ -2,6 +2,7 @@
 
 # Path to your custom world file (kept outside PX4 so it survives rebuilds)
 WORLD_FILE="/home/developer/workspace/worlds/baylands.sdf"
+#WORLD_FILE="/home/developer/workspace/worlds/small_city.sdf"
 
 # Launch Gazebo with the custom world before starting PX4.
 # PX4 will detect gz-sim is already running and connect to it instead of

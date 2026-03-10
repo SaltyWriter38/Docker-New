@@ -8,3 +8,5 @@ ros2_ws/src/px4_ros_com
 
 __pycache__/
 *.pyc
+
+gazebo_models_worlds_collection/

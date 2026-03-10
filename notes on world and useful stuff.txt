@@ -11,6 +11,8 @@ see default in default.sdf and in worlds/baylands.sdf
 
 I HAVE NOT TESTED IF THIS LAUNCHES THE RIGHT WORLD FILE ON STARTUP / FIRST BUILD YET
 
+https://github.com/leonhartyao/gazebo_models_worlds_collection/tree/master/worlds
+
 ----
 
 getting error:
