@@ -1,6 +1,14 @@
 Hello lovely team. Please find instructions below on how to run the container for development.
 First you need to clone the repo onto your machine - at the time of writing the container doesn't work on the clone remote repository. This turns out to be a good thing as the first time build time on Windows/Mac is 20+ minutes - Linux is much faster. 
 
+-------------
+
+NEW ACTUAL README:
+1. Follow HOW TO RUN ME.md
+2. Follow HOW TO RUN THE TEST.md
+
+--------------
+
 Steps for Windows (MAC is mostly similar but needs further testing w/Luke help):
 
 1. Clone the repo locally and open it in vscode - ensure you have the devcontainers extension downloaded. 
