@@ -5,6 +5,11 @@ IMPLEMENTATION:
     - does it? i can't find where this is called at all? when we start px4 to begin with we only build px4 and then it starts itself?
     - do we need to change build_px4 so that it runs our custom run simulation script?
 
+- lots of redundant scripts:
+    should ONLY call scripts in /home/developer/workspace/scripts
+    not sure about the ones in .devcontainer/scripts ???
+    CAN REMOVE helper.sh in all instances because this just creates the scripts which already exist
+
 - new module for testing, not called px4_something !
 - launch file
 - world model in launch file? or does this come into the px4 launch
@@ -19,6 +24,7 @@ TECH STUFF:
 - way to restart px4 without rebuilding it (probably will fix battery warning as well)
     pkill -f "bin/px4" 
     pkill -f "gz sim"
+    then:
     old: /home/developer/scripts/run_simulation.sh
     new: /home/developer/workspace/scripts/run_simulation.sh
 
