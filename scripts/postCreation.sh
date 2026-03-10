@@ -8,12 +8,12 @@ sudo chown -R $USER:$USER /home/developer/workspace
 git config --global --add safe.directory /home/developer/workspace
 
 # 1. Run Helper Script
-if [ -f "/home/developer/scripts/helper.sh" ]; then
-    echo "Generating helper scripts..."
-    source /home/developer/scripts/helper.sh
-else
-    echo "WARNING: helper.sh not found"
-fi
+#if [ -f "/home/developer/scripts/helper.sh" ]; then
+#    echo "Generating helper scripts..."
+#    source /home/developer/scripts/helper.sh
+#else
+#    echo "WARNING: helper.sh not found"
+#fi
 
 cd /home/developer/workspace
 
@@ -46,4 +46,4 @@ if [ ! -d "px4_ros_com" ]; then
 fi
 
 echo ">>> SETUP COMPLETE! <<<"
-echo "You can now run: /home/developer/scripts/build_px4.sh"
+echo "You can now run: /home/developer/workspace/scripts/build_px4.sh"

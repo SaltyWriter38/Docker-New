@@ -29,8 +29,8 @@
     "--cap-add=SYS_ADMIN",
     "--device=/dev/fuse"
   ],
-  "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
-  "postStartCommand": "bash /home/developer/scripts/start_vnc.sh",
+  "postCreateCommand": "bash /home/developer/workspace/.devcontainer/scripts/postCreation.sh",
+  "postStartCommand": "bash /home/developer/workspace/.devcontainer/scripts/start_vnc.sh",
   "customizations": {
     "vscode": {
       "extensions": [

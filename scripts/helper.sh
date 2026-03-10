@@ -1,3 +1,12 @@
+#######################################
+#
+# PLEASE NOTE WE ARE NOT LONGER USING THIS
+# THESE SCRIPTS ARE NOW IN /home/developer/workspace/scripts/
+# USE THOSE INSTEAD OF THESE ONES! THIS FILE IS NOT BEING USED AT ALL
+# AND CAN BE REMOVED AS SOON AS WE ARE SURE WE DON'T USE IT ANYWHERE
+#
+#######################
+
 # Create helpful scripts directory
 mkdir -p /home/developer/scripts
 

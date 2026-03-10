@@ -20,7 +20,7 @@ Follow these instructions to fully set up the container.
 
 9. Wait for all the submodules to install automatically (5 minutes). 
 
-10. Run this command: /home/developer/scripts/build_px4.sh
+10. Run this command: /home/developer/workspace/scripts/build_px4.sh
 
 11. Wait for the message 'ready for takeoff!' or something. 
 

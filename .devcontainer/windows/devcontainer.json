@@ -1,51 +1,3 @@
-// {
-//   "name": "PX4 ROS2 Dev Container",
-//   "build": {
-//     "dockerfile": "Dockerfile",
-//     "args": {
-//       "USERNAME": "developer",
-//       "USER_UID": "1000",
-//       "USER_GID": "1000"
-//     }
-//   },
-//   "remoteUser": "developer",
-//   "containerUser": "developer",
-//   "workspaceFolder": "/home/developer/workspace",
-//   "mounts": [
-//     "source=${localWorkspaceFolder}/workspace,target=/home/developer/workspace,type=bind"
-//   ],
-//   "containerEnv": {
-//     "DISPLAY": "0",
-//     "WORKSPACE_DIR": "/home/developer",
-//     "NVIDIA_VISIBLE_DEVICES": "all",
-//     "NVIDIA_DRIVER_CAPABILITIES": "all",
-//     "QT_X11_NO_MITSHM": "1"
-    
-//   },
-//   "runArgs": [
-//     "--privileged",
-//     "--gpus=all"
-//   ],
-
-//   "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
-//   "customizations": {
-//     "vscode": {
-//       "extensions": [
-//         "ms-vscode.cpptools-extension-pack",
-//         "ms-vscode.cmake-tools",
-//         "ms-python.python",
-//         "ms-azuretools.vscode-docker",
-//         "redhat.vscode-yaml"
-//       ],
-//       "settings": {
-//         "terminal.integrated.defaultProfile.linux": "bash",
-//         "cmake.configureOnOpen": false,
-//         "python.defaultInterpreterPath": "/usr/bin/python3"
-//       }
-//     }
-//   }
-// }
-
 {
   "name": "PX4 ROS2 WSLg",
   "initializeCommand": "mkdir -p workspace",
@@ -83,7 +35,7 @@
     "--gpus=all",
     "--device=/dev/dxg"
   ],
-  "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
+  "postCreateCommand": "bash /home/developer/workspace/.devcontainer/scripts/postCreation.sh",
   "customizations": {
     "vscode": {
       "extensions": [

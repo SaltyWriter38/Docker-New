@@ -1,10 +1,26 @@
 IMPLEMENTATION:
- - TO DO !!! MUST UPDATE helper.sh, postCreation.sh, start_vnc.sh TO POINT TO /workspace/scripts RATHER THAN /home/developer/scripts AS THESE SOMETIMES NEED CHANGING AND ARENT IN OUR GIT REPO !!!
- THIS NEEDS FIXING BEFORE THE NEW WORLD FILE WILL LAUNCH BUT I HAVE TO GO A PRACTICAL !
+
+- what happens specifically on startup? what we want:
+    - the version of run_simulaton.sh in /home/developer/workspace/scripts/run_simulation.sh should run on startup
+    - does it? i can't find where this is called at all? when we start px4 to begin with we only build px4 and then it starts itself?
+    - do we need to change build_px4 so that it runs our custom run simulation script?
+
 - new module for testing, not called px4_something !
 - launch file
 - world model in launch file? or does this come into the px4 launch
+
+- see drone camera output
+    -> not sure if this drone has a camera
+    -> see this page for how we can change build_px4 to build a drone that DOES have a camera
+    https://docs.px4.io/main/en/sim_gazebo_gz/
+    could just change gz_500 for gz_500_depth or gz_500_vision
  
-TECH SHIT:
+TECH STUFF:
 - way to restart px4 without rebuilding it (probably will fix battery warning as well)
+    pkill -f "bin/px4" 
+    pkill -f "gz sim"
+    old: /home/developer/scripts/run_simulation.sh
+    new: /home/developer/workspace/scripts/run_simulation.sh
+
 - WSL working and replicating the functionality of vnc
+- build image of dockerfile
