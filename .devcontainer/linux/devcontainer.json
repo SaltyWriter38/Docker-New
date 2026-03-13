@@ -1,8 +1,10 @@
 {
   "name": "PX4 (Linux Native)",
   "build": {
+    // ADJUST PATHS: Assuming this file is in .devcontainer/linux/
+    // If this file is in .devcontainer/, change to "Dockerfile" and context ".."
     "dockerfile": "../Dockerfile",
-    "context": "../..",
+    "context": "..",
     "args": {
       "USERNAME": "developer",
       "USER_UID": "1000",
@@ -12,12 +14,12 @@
   "remoteUser": "developer",
   "workspaceFolder": "/home/developer/workspace",
   "mounts": [
-    "source=${localWorkspaceFolder}/workspace,target=/home/developer/workspace,type=bind",
-    // Native Linux X11 Mount
-    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
+    // X11 Socket for GUI forwarding
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind",
+    // Optional: Map GPU DRI devices (Redundant if using --device in runArgs, but safe)
+    "source=/dev/dri,target=/dev/dri,type=bind"
   ],
   "containerEnv": {
-    // On native Linux, we use the host display directly
     "DISPLAY": "${localEnv:DISPLAY}",
     "NVIDIA_VISIBLE_DEVICES": "all",
     "NVIDIA_DRIVER_CAPABILITIES": "all",
@@ -26,12 +28,21 @@
   "runArgs": [
     "--privileged",
     "--net=host",
-    "--gpus=all"
+    "--gpus=all",
+    "--device=/dev/dri:/dev/dri",
+    "--ipc=host",
+    "--env", "NVIDIA_VISIBLE_DEVICES=all",
+    "--env", "NVIDIA_DRIVER_CAPABILITIES=all"
   ],
-  "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
+  "postCreateCommand": "bash /home/developer/workspace/.devcontainer/scripts/postCreation.sh",
   "customizations": {
     "vscode": {
-      "extensions": ["ms-vscode.cpptools-extension-pack", "ms-vscode.cmake-tools", "ms-python.python"]
+      "extensions": [
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cmake-tools",
+        "ms-python.python",
+        "VisualStudioExptTeam.vscodeintellicode"
+      ]
     }
   }
 }

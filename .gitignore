@@ -1,0 +1,12 @@
+PX4-Autopilot/
+
+ros2_ws/build
+ros2_ws/install
+ros2_ws/log
+ros2_ws/src/px4_msgs
+ros2_ws/src/px4_ros_com
+
+__pycache__/
+*.pyc
+
+gazebo_models_worlds_collection/

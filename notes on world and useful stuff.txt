@@ -1,0 +1,23 @@
+rerun the simulation without rebuilding:
+
+pkill -f "bin/px4" 
+pkill -f "gz sim"
+old: /home/developer/scripts/run_simulation.sh
+new: /home/developer/workspace/scripts/run_simulation.sh
+
+world file should now be baylands, launches onto a road with some grass
+world files require a set of 7 plugins to work with this drone
+see default in default.sdf and in worlds/baylands.sdf
+
+I HAVE NOT TESTED IF THIS LAUNCHES THE RIGHT WORLD FILE ON STARTUP / FIRST BUILD YET
+
+https://github.com/leonhartyao/gazebo_models_worlds_collection/tree/master/worlds
+
+----
+
+getting error:
+bash: /home/developer/workspace/scripts/run_simulation.sh: /bin/bash^M: bad interpreter: No such file or directory
+
+fixed with:
+sed -i -e 's/\r$//' run_simulation.sh
+in that directory
