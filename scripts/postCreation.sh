@@ -45,5 +45,10 @@ if [ ! -d "px4_ros_com" ]; then
     git clone -b release/v1.14 https://github.com/PX4/px4_ros_com.git
 fi
 
-echo ">>> SETUP COMPLETE! <<<"
-echo "You can now run: /home/developer/workspace/scripts/build_px4.sh"
+echo "Building PX4..."
+bash /home/developer/scripts/build_px4.sh
+
+echo "Building ROS2 Workspace..."
+bash /home/developer/scripts/build_ros2.sh
+
+echo ">>> SETUP AND BUILD COMPLETE! <<<"

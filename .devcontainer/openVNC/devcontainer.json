@@ -1,6 +1,14 @@
 {
   "name": "PX4 Lab VNC (GPU)",
-  "image": "ghcr.io/saltywriter38/docker-new/dev-env:latest",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "args": {
+      "USERNAME": "developer",
+      "USER_UID": "1000",
+      "USER_GID": "1000"
+    }
+  },
   "remoteUser": "developer",
   "containerUser": "developer",
   "workspaceFolder": "/home/developer/workspace",

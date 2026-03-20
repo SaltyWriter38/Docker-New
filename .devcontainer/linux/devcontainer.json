@@ -1,9 +1,21 @@
 {
   "name": "PX4 (Linux Native)",
-"image": "ghcr.io/saltywriter38/docker-new/dev-env:latest",
+  "build": {
+    // ADJUST PATHS: Assuming this file is in .devcontainer/linux/
+    // If this file is in .devcontainer/, change to "Dockerfile" and context ".."
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "args": {
+      "USERNAME": "developer",
+      "USER_UID": "1000",
+      "USER_GID": "1000"
+    }
+  },
   "remoteUser": "developer",
   "workspaceFolder": "/home/developer/workspace",
   "mounts": [
+    "source=${localWorkspaceFolder},target=/home/developer/workspace,type=bind",
+
     // X11 Socket for GUI forwarding
     "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind",
     // Optional: Map GPU DRI devices (Redundant if using --device in runArgs, but safe)
