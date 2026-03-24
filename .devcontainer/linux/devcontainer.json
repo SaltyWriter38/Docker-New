@@ -1,16 +1,6 @@
 {
   "name": "PX4 (Linux Native)",
-  "build": {
-    // ADJUST PATHS: Assuming this file is in .devcontainer/linux/
-    // If this file is in .devcontainer/, change to "Dockerfile" and context ".."
-    "dockerfile": "../Dockerfile",
-    "context": "..",
-    "args": {
-      "USERNAME": "developer",
-      "USER_UID": "1000",
-      "USER_GID": "1000"
-    }
-  },
+  "image": "ghcr.io/saltywriter38/docker-new/dev-env:latest",
   "remoteUser": "developer",
   "workspaceFolder": "/home/developer/workspace",
   "mounts": [
@@ -36,7 +26,7 @@
     "--env", "NVIDIA_VISIBLE_DEVICES=all",
     "--env", "NVIDIA_DRIVER_CAPABILITIES=all"
   ],
-  "postCreateCommand": "bash /home/developer/workspace/.devcontainer/scripts/postCreation.sh",
+  "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
   "customizations": {
     "vscode": {
       "extensions": [
