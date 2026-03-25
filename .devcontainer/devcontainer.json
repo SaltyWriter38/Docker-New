@@ -1,0 +1,32 @@
+{
+  "name": "PX4 Lab VNC (GPU)",
+  "image": "ghcr.io/saltywriter38/docker-new/dev-env:latest",
+  "remoteUser": "developer",
+  "containerUser": "developer",
+  "workspaceFolder": "/home/developer/workspace",
+  "containerEnv": {
+    "WORKSPACE_DIR": "/home/developer",
+    "DISPLAY": ":1",
+    "QT_X11_NO_MITSHM": "1",
+    "XDG_RUNTIME_DIR": "/tmp/runtime-developer" 
+  },
+  "forwardPorts": [5901, 6080],
+  "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
+  "postStartCommand": "bash /home/developer/scripts/start_vnc.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cmake-tools",
+        "ms-python.python",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "cmake.configureOnOpen": false,
+        "python.defaultInterpreterPath": "/usr/bin/python3"
+      }
+    }
+  }
+}
