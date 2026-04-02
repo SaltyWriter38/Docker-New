@@ -5,7 +5,7 @@
   "containerUser": "developer",
   "workspaceFolder": "/home/developer/workspace",
   "mounts": [
-    "sources=${localWorkspaceFolder}, target=/home/developer/workspace, type=bind"
+    "source=${localWorkspaceFolder},target=/home/developer/workspace,type=bind"
   ],
   "containerEnv": {
     "WORKSPACE_DIR": "/home/developer",
