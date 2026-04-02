@@ -1,5 +1,12 @@
 #!/bin/bash
 
+#if px4 or gazebo are running, kill them
+pkill -f "bin/px4" 
+pkill -f "gz sim"
+
+#we always want to run the MicroXRCE agent
+MicroXRCEAgent udp4 -p 8888 &
+
 # Path to your custom world file (kept outside PX4 so it survives rebuilds)
 WORLD_FILE="/home/developer/workspace/worlds/baylands.sdf"
 #WORLD_FILE="/home/developer/workspace/worlds/small_city.sdf"
