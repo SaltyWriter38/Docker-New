@@ -17,7 +17,7 @@ def pos_to_velocities(currentX, currentY, targetX, targetY, speed, arrivalRadius
 
     dx = targetX - currentX
     dy = targetY - currentY
-    dist = math.sqrt(dx * dx + dy + dy) #cheeky pythagoras
+    dist = math.sqrt(dx * dx + dy * dy) #cheeky pythagoras
 
     if dist < arrivalRadius:
         #we have reached the destination
