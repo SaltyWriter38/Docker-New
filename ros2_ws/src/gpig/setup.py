@@ -1,5 +1,4 @@
 from setuptools import find_packages, setup
-import os
 from glob import glob
 
 package_name = 'gpig'
@@ -12,6 +11,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/models', glob('gpig/models/*.tflite')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,7 +26,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'start = gpig.main:main'
+            'start = gpig.main:main',
+            'object_detection = gpig.object_detection:main',
         ],
     },
 )

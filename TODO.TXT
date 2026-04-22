@@ -2,7 +2,8 @@ IMPLEMENTATION:
 
 - see drone camera output
     -> using gz_x500_depth and reading camera out on (... idk see luke uni pc documents for notes)
- 
+    -> improve microxrce agent
+
 - improvements to world file
     -> really wants to be a town / urban area 
     -> would be nice to have models of accidents that the drone is going to fly to
@@ -10,9 +11,18 @@ IMPLEMENTATION:
 - holding and dropping an object (crate of supplies)
 
 - obstacle avoidance algorithm / getting back on track after avoiding an obstacle algorithm
+- NOTAM avoidance (make a data structure of some form)
 
 - integration with tom's AI landing system
+    -> visualise camera output
+    -> make his code a node
+    -> feed camera data to tom's code
+    -> visualise results of tom's code rather than camera output
+    -> when we are near the destination, use tom's code to decide where to land (new state in the state machine)
+
 - integration with the server telling us where to go
+    -> recieve coordinates from server
+    -> constantly send current GPS to server
 
 TECH STUFF:
     -when we first load into the container, it would be really nice if the px4_msgs ros2 package

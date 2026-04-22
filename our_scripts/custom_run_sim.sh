@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# install mediapipe dependency for tom's code if we don't already have it
+if ! python3 -c "import mediapipe" >/dev/null 2>&1; then
+	echo "INSTALLING MEDIAPIPE - YOU SHOULD ONLY SEE THIS ONCE !"
+	python3 -m pip install --user mediapipe
+fi
+
 #if px4 or gazebo are running, kill them
 pkill -f "bin/px4" 
 pkill -f "gz sim"
