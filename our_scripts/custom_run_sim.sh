@@ -10,8 +10,23 @@ fi
 pkill -f "bin/px4" 
 pkill -f "gz sim"
 
+# get the right version of ros bridge 
+sudo apt remove -y \
+  ros-humble-ros-gz-bridge \
+  ros-humble-ros-gz-sim \
+  ros-humble-ros-gz-interfaces \
+  ros-humble-ros-gz-image \
+  ros-humble-ros-gz
+sudo apt install -y ros-humble-ros-gzgarden
+
+
 #we always want to run the MicroXRCE agent
 MicroXRCEAgent udp4 -p 8888 &
+
+# run the bridge for images
+source /opt/ros/humble/setup.bash
+ros2 run ros_gz_bridge parameter_bridge /camera@sensor_msgs/msg/Image[gz.msgs.Image &
+
 
 #launch gazebo with the right world file and drone model
 WORLD_FILE="/home/developer/workspace/worlds/baylands.sdf"
