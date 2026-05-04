@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<sdf version='1.10'>
+    <model name='landing_pad'>
+    	<pose> 0 0 0 3.14 0 0 </pose>
+        <link name='base_link'>
+            <collision name='base_link_collision'>
+                <geometry>
+                    <cylinder>
+                        <radius>2.032</radius>
+                        <length>0.003048</length>
+                    </cylinder>
+                </geometry>
+            </collision>
+            <visual name='base_link_visual'>
+                <geometry>
+                    <mesh>
+                        <uri>file:///home/developer/workspace/worlds/LandingPad/LandingPad.dae</uri>
+                        <scale>5 5 5</scale>
+                    </mesh>
+                </geometry>
+            </visual>
+        </link>
+    </model>
+</sdf>
