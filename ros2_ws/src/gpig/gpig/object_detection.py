@@ -17,7 +17,7 @@ FONT_SIZE = 1
 FONT_THICKNESS = 1
 TEXT_COLOR = (255, 0, 0)
 
-DEFAULT_MODEL_NAME = "efficientdet_lite0.tflite"
+DEFAULT_MODEL_NAME = "efficientdet_lite2.tflite"
 
 
 def visualize(
@@ -133,7 +133,7 @@ class ObjectDetectionNode(Node):
     self.declare_parameter("detection_threshold", 0.1)
     self.declare_parameter("distance_from", 3.0)
     self.declare_parameter("max_box_size", 400.0)
-    self.declare_parameter("bias_value", 0.0)
+    self.declare_parameter("bias_value", 2.0)
     self.declare_parameter("show_debug_windows", False)
 
     self.image_topic = str(self.get_parameter("image_topic").value)
