@@ -95,6 +95,8 @@ def visualize(
   _, max_val, _, max_loc = cv2.minMaxLoc(weighted_distance_map)
   space_clearance = float(distance_map[max_loc[1], max_loc[0]])
 
+  cv2.line(image, (max_loc[0], max_loc[1]), (center_y, center_x), (255, 0, 255), 2)
+
   meta: Dict[str, Any] = {
     "object_count": object_count,
     "safe_spot_found": False,
