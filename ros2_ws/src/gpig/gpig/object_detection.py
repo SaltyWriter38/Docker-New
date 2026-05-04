@@ -45,9 +45,11 @@ def visualize(
     end_point = int(bbox.origin_x + bbox.width), int(bbox.origin_y + bbox.height)
     cv2.rectangle(image, start_point, end_point, TEXT_COLOR, 3)
 
+    
     category_name = detection.categories[0].category_name
     result_text = f"{category_name} ({score})"
     text_location = (MARGIN + int(bbox.origin_x), MARGIN + ROW_SIZE + int(bbox.origin_y))
+    """
     cv2.putText(
       image,
       result_text,
@@ -57,6 +59,7 @@ def visualize(
       TEXT_COLOR,
       FONT_THICKNESS,
     )
+    """
 
   mask = np.zeros(image.shape[:2], dtype=np.uint8)
   for detection in detection_result.detections:
