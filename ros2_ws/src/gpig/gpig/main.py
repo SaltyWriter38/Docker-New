@@ -72,15 +72,15 @@ class OffboardControl(Node):
 
     def publish_offboard_control_mode(self):
         msg = OffboardControlMode()
-        msg.position, msg.velocity, msg.acceleration = True, True, False
+        msg.position, msg.velocity, msg.acceleration = True, False, False
         msg.timestamp = int(self.get_clock().now().nanoseconds / 1000)
         self.offboard_mode_pub.publish(msg)
 
-    def publish_trajectory_setpoint(self, vx, vy, z):
+    def publish_trajectory_setpoint(self, x, y, z):
         msg = TrajectorySetpoint()
         #float('nan') means ignore this axis
-        msg.velocity = [vx, vy, float('nan')] #we are only flying in the X/Y plane
-        msg.position = [float('nan'), float('nan'), z] #and we are maintaining our Z position (altitude)
+        msg.velocity = [float('nan'), float('nan'), float('nan')]
+        msg.position = [x, y, z]
         msg.timestamp = int(self.get_clock().now().nanoseconds / 1000)
         self.trajectory_pub.publish(msg)
 
@@ -107,6 +107,9 @@ class OffboardControl(Node):
         #every time the timer ticks, reaffirm to PX4 that we are actually flying the drone so it doesnt auto-land
         self.publish_offboard_control_mode()
 
+        #always stream a valid setpoint before and during offboard mode
+        self.fly_towards_coord()
+
         #logic below assumes timer ticks every tenth of a second
 
         #after one second of being active, arm the drone and switch it to offboard mode
@@ -122,9 +125,8 @@ class OffboardControl(Node):
                 self.get_logger().info("DESTINATION REACHED, DRONE LANDING !!", once=True)
                 self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_NAV_LAND)
                 raise SystemExit #stop this entire node running
-            
+
             #if we have not landed:
-            self.fly_towards_coord() #doesnt take any arguments AS OF YET
             if self.counter % 10 == 0:
                 self.get_logger().info("DRONE FLYING")
 
@@ -138,6 +140,8 @@ class OffboardControl(Node):
         #at the moment this takes the target coord from the class attribute
         #can be easily modified to take it as an argument
 
+        target_z = -self.TARGET_ALTITUDE
+
         if self.currentX is None:
             #have not yet heard from VehicleLocalPosition
             #really want to do nothing, but if we idle then PX4 hates us and times out
@@ -146,14 +150,15 @@ class OffboardControl(Node):
             self.get_logger().warn("I don't know where my local position is !!!")
 
             #must negate the TARGET_ALTITUDE because PX4 uses 'altitude = 10m' to mean 10m underground (NED-Z coord system uses 'positive down')
-            self.publish_trajectory_setpoint(0.0, 0.0, -self.TARGET_ALTITUDE)
+            self.publish_trajectory_setpoint(0.0, 0.0, target_z)
 
             return
-        
-        vx, vy, self.arrived = pos_to_velocities(self.currentX, self.currentY, self.TARGET_X, self.TARGET_Y, self.MOVEMENT_SPEED, self.ARR_RAD)
 
-        #must negate the TARGET_ALTITUDE because PX4 uses 'altitude = 10m' to mean 10m underground (NED-Z coord system uses 'positive down')
-        self.publish_trajectory_setpoint(vx, vy, -self.TARGET_ALTITUDE)
+        xy_error = math.hypot(self.TARGET_X - self.currentX, self.TARGET_Y - self.currentY)
+        z_error = abs(target_z - self.currentZ) if self.currentZ is not None else float('inf')
+        self.arrived = (xy_error < self.ARR_RAD) and (z_error < 1.0)
+
+        self.publish_trajectory_setpoint(self.TARGET_X, self.TARGET_Y, target_z)
 
 def main(args=None):
     rclpy.init(args=args)
