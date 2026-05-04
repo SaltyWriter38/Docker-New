@@ -123,7 +123,7 @@ class ObjectDetectionNode(Node):
     super().__init__("object_detection")
     self.bridge = CvBridge()
 
-    self.declare_parameter("image_topic", "/camera/image_raw")
+    self.declare_parameter("image_topic", "/camera")
     self.declare_parameter("annotated_topic", "/gpig/object_detection/annotated")
     self.declare_parameter("summary_topic", "/gpig/object_detection/summary")
     self.declare_parameter("model_name", DEFAULT_MODEL_NAME)
