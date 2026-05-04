@@ -30,6 +30,7 @@ def visualize(
   bias_value: float,
 ) -> Tuple[np.ndarray, Dict[str, Any], np.ndarray]:
   """Draw detections and compute a safe area from obstacle distance transform."""
+
   object_count = len(detection_result.detections)
 
   for detection in detection_result.detections:
