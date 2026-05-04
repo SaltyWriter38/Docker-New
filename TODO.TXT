@@ -1,3 +1,9 @@
+TODAY:
+    - put ros build script in custom run
+    - write a not shit readme
+    - integrate server
+    - pass position/rotation data to server
+
 IMPLEMENTATION:
 
 - see drone camera output
