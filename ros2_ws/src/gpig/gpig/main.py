@@ -32,8 +32,8 @@ def pos_to_velocities(currentX, currentY, targetX, targetY, speed, arrivalRadius
 class OffboardControl(Node):
 
     #target x,y coordinates (these will come from the server and we need some method of recieveing / setting them)
-    TARGET_X = 10.0
-    TARGET_Y = 20.0
+    TARGET_X = 0.0
+    TARGET_Y = 0.0 - 20
 
     TARGET_ALTITUDE = 10.0 #the altitude we want to be flying around at
     MOVEMENT_SPEED = 5.0 #normal movement speed in m/s
