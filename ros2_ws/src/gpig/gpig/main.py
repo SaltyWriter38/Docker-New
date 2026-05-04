@@ -113,6 +113,7 @@ class OffboardControl(Node):
         if self.counter == 10:
             self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, 1.0)
             self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_DO_SET_MODE, 1.0, 6.0) # 6 = Offboard
+            self.get_logger().info("DRONE SWITCHING TO OFFBOARD MODE", once=True)
 
         #after that, tell the drone what to do (control loop)
         if self.counter > 10:
@@ -124,6 +125,8 @@ class OffboardControl(Node):
             
             #if we have not landed:
             self.fly_towards_coord() #doesnt take any arguments AS OF YET
+            if self.counter % 10 == 0:
+                self.get_logger().info("DRONE FLYING")
 
         #increment the timer counter
         self.counter += 1
