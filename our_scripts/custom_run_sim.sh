@@ -50,4 +50,4 @@ done
 
 #launch px4 with the gz_x500_depth model for the camera output
 cd /home/developer/workspace/PX4-Autopilot/build/px4_sitl_default/rootfs
-PX4_SIM_MODEL=gz_x500_depth ../bin/px4
+PX4_SIM_MODEL=x500_mono_cam_down /home/developer/workspace/.px4_gz_overlay/models/x500_mono_cam_down/model.config

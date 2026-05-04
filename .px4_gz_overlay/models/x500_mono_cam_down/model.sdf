@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sdf version='1.9'>
+	<model name='x500_mono_cam_down'>
+		<include merge='true'>
+			<uri>x500</uri>
+		</include>
+		<link name="camera_link">
+			<pose>0 0 -0.02 0 0 0</pose>
+			<sensor name="camera" type="camera">
+				<pose>0 0 0 0 1.57079632679 0</pose>
+				<always_on>1</always_on>
+				<update_rate>30</update_rate>
+				<visualize>false</visualize>
+				<camera>
+					<horizontal_fov>1.3962634</horizontal_fov>
+					<image>
+						<width>640</width>
+						<height>480</height>
+						<format>R8G8B8</format>
+					</image>
+					<clip>
+						<near>0.1</near>
+						<far>100</far>
+					</clip>
+				</camera>
+				<topic>/camera</topic>
+			</sensor>
+		</link>
+		<joint name="camera_joint" type="fixed">
+			<parent>base_link</parent>
+			<child>camera_link</child>
+		</joint>
+	</model>
+</sdf>
