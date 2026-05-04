@@ -95,6 +95,7 @@ def visualize(
   _, max_val, _, max_loc = cv2.minMaxLoc(weighted_distance_map)
   space_clearance = float(distance_map[max_loc[1], max_loc[0]])
 
+  vector_to_safe_spot = (max_loc[0] - center_y, max_loc[1] - center_x)
   cv2.line(image, (max_loc[0], max_loc[1]), (center_y, center_x), (255, 0, 255), 2)
 
   meta: Dict[str, Any] = {
@@ -102,6 +103,7 @@ def visualize(
     "safe_spot_found": False,
     "safe_spot_center": [int(max_loc[0]), int(max_loc[1])],
     "safe_spot_clearance": float(space_clearance),
+    "vector_to_safe_spot": vector_to_safe_spot,
   }
 
   if space_clearance < distance_from:
@@ -222,13 +224,14 @@ class ObjectDetectionNode(Node):
       f"safe_spot_found={meta['safe_spot_found']} "
       f"safe_spot_center={meta['safe_spot_center']} "
       f"safe_spot_clearance={meta['safe_spot_clearance']:.3f}"
+      f"vector_to_safe_spot={meta['vector_to_safe_spot']}"
     )
     self.summary_pub.publish(summary)
 
     if self.show_debug_windows:
       heatmap = cv2.normalize(weighted_map, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
       cv2.imshow("Object Detection", annotated)
-      cv2.imshow("Safety Heatmap", heatmap)
+      #cv2.imshow("Safety Heatmap", heatmap)
       cv2.waitKey(1)
 
   def destroy_node(self) -> bool:
