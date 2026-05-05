@@ -1,10 +1,16 @@
-import os
+import sys
+from io import StringIO
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-os.environ.setdefault("QT_QPA_FONTDIR", "/usr/share/fonts/truetype/dejavu")
+# genius method of suppressing warning by redirecting stderr
+old_stderr = sys.stderr
+sys.stderr = StringIO()
 
 import cv2
+
+sys.stderr = old_stderr
+
 import mediapipe as mp
 import numpy as np
 import rclpy
@@ -146,7 +152,6 @@ class ObjectDetectionNode(Node):
     self.declare_parameter("max_box_size", 200.0)
     self.declare_parameter("bias_value", 2.0)
     self.declare_parameter("show_debug_windows", False)
-    self.declare_parameter("previous_detections", None)
 
     self.image_topic = str(self.get_parameter("image_topic").value)
     self.annotated_topic = str(self.get_parameter("annotated_topic").value)
@@ -167,6 +172,7 @@ class ObjectDetectionNode(Node):
     self.annotated_pub = self.create_publisher(Image, self.annotated_topic, 10)
     self.summary_pub = self.create_publisher(String, self.summary_topic, 10)
     self.image_sub = self.create_subscription(Image, self.image_topic, self.image_callback, 10)
+
 
     self.get_logger().info(f"Object detector ready with model: {resolved_model_path}")
 
@@ -209,12 +215,10 @@ class ObjectDetectionNode(Node):
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
 
     detection_result = self.detector.detect(mp_image)
-    joint_detections = detection_result.detections + self.previous_detections.detections if self.previous_detections else detection_result.detections
-    self.previous_detections = detection_result
   
     annotated, meta, weighted_map = visualize(
       frame_bgr.copy(),
-      joint_detections,
+      detection_result,
       self.box_threshold,
       self.detection_threshold,
       self.distance_from,
