@@ -1,5 +1,8 @@
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
+
+os.environ.setdefault("QT_QPA_FONTDIR", "/usr/share/fonts/truetype/dejavu")
 
 import cv2
 import mediapipe as mp
