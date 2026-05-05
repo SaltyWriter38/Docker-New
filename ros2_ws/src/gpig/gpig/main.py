@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
 from px4_msgs.msg import OffboardControlMode, TrajectorySetpoint, VehicleCommand, VehicleLocalPosition
+from geometry_msgs.msg import Point
 
 import math
 
@@ -57,6 +58,8 @@ class OffboardControl(Node):
 
         #SUBSCRIBERS
         self.create_subscription(VehicleLocalPosition, '/fmu/out/vehicle_local_position', self.local_position_callback, qos_profile)
+        self.create_subscription(Point, '/ouranos/destination', self._on_destination, 10)
+
 
         #CALLBACKS AND OTHER VARIABLES NOT KNOWN AT COMPILE TIME
         self.timer = self.create_timer(0.1, self.timer_callback) # 10Hz
@@ -100,6 +103,18 @@ class OffboardControl(Node):
         self.currentX = msg.x
         self.currentY = msg.y
         self.currentZ = msg.z
+
+    def _on_destination(self, msg: Point):
+        """Callback fired when the Ouranos dashboard sends a new destination."""
+        self.TARGET_X = float(msg.x)
+        self.TARGET_Y = float(msg.y)
+        # Reset arrival flag so the drone re-plans toward the new target
+        self.arrived = False
+        self.get_logger().info(
+            f"New destination received from Ouranos: "
+            f"TARGET_X={self.TARGET_X}, TARGET_Y={self.TARGET_Y}"
+        )
+
 
     #-------------------------- TIMER CALLBACK -> MAIN LOOP ----------------------------
 
