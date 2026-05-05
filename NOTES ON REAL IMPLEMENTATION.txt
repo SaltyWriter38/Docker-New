@@ -1,0 +1,30 @@
+what do we want to happen?
+
+-given a set latitude and longitude coordinate, fly there and drop off a package
+
+how do we do that?
+
+it depends:
+if we want to control the drone at all times, we can use the 'offboard control' mode of px4
+we continuously publish trajectories for the drone to fly towards at some speed
+we have some method of detecting where the drone is, and when we reach it, we stop flying and do something else (drop package, ...)
+
+OR
+
+we can use 'mission mode'
+there is a specific 'package delivery mission' spoken about a lot in the px4 documentation
+which seems to be exactly what we want.
+can we find a ros2 python code implementation of this functionality and adapt it???
+
+general overview / using the GUI based software: https://docs.px4.io/main/en/flying/package_delivery_mission
+somewhat more detailed but still no code examples: https://docs.px4.io/main/en/advanced/package_delivery
+
+
+----------------------------------------
+
+general notes:
+
+official documentation of using ros2 with px4 (https://docs.px4.io/main/en/ros2/px4_ros2_control_interface) recommends using our current setup
+in TANDEM with QGroundControl to give a GUI (rather than what? gazebo?)
+this would let us do things like setting destination coordinates (and allegedly planning missions / package delivieries) using this GUI
+do we want to do that? or does it involve more docker shit and is more trouble than its worth?

@@ -1,32 +1,39 @@
+TODAY:
+    - put ros build script in custom run
+    - write a not shit readme
+    - integrate server
+    - pass position/rotation data to server
+
 IMPLEMENTATION:
 
-- what happens specifically on startup? what we want:
-    - the version of run_simulaton.sh in /home/developer/workspace/scripts/run_simulation.sh should run on startup
-    - does it? i can't find where this is called at all? when we start px4 to begin with we only build px4 and then it starts itself?
-    - do we need to change build_px4 so that it runs our custom run simulation script?
-
-- lots of redundant scripts:
-    should ONLY call scripts in /home/developer/workspace/scripts
-    not sure about the ones in .devcontainer/scripts ???
-    CAN REMOVE helper.sh in all instances because this just creates the scripts which already exist
-
-- new module for testing, not called px4_something !
-- launch file
-- world model in launch file? or does this come into the px4 launch
-
 - see drone camera output
-    -> not sure if this drone has a camera
-    -> see this page for how we can change build_px4 to build a drone that DOES have a camera
-    https://docs.px4.io/main/en/sim_gazebo_gz/
-    could just change gz_500 for gz_500_depth or gz_500_vision
- 
-TECH STUFF:
-- way to restart px4 without rebuilding it (probably will fix battery warning as well)
-    pkill -f "bin/px4" 
-    pkill -f "gz sim"
-    then:
-    old: /home/developer/scripts/run_simulation.sh
-    new: /home/developer/workspace/scripts/run_simulation.sh
+    -> using gz_x500_depth and reading camera out on (... idk see luke uni pc documents for notes)
+    -> improve microxrce agent
 
-- WSL working and replicating the functionality of vnc
-- build image of dockerfile
+- improvements to world file
+    -> really wants to be a town / urban area 
+    -> would be nice to have models of accidents that the drone is going to fly to
+
+- holding and dropping an object (crate of supplies)
+
+- obstacle avoidance algorithm / getting back on track after avoiding an obstacle algorithm
+- NOTAM avoidance (make a data structure of some form)
+
+- integration with tom's AI landing system
+    -> visualise camera output
+    -> make his code a node
+    -> feed camera data to tom's code
+    -> visualise results of tom's code rather than camera output
+    -> when we are near the destination, use tom's code to decide where to land (new state in the state machine)
+
+- integration with the server telling us where to go
+    -> recieve coordinates from server
+    -> constantly send current GPS to server
+
+TECH STUFF:
+    -when we first load into the container, it would be really nice if the px4_msgs ros2 package
+        was automatically built. that saves you having to build it the first time you build our code
+        and i think all the loading and waiting should happen in one go 
+
+        can do that with colcon build --packages-select px4_msgs
+        can we add this to a startup script or is that a nightmare?

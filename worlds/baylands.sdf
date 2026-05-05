@@ -21,7 +21,7 @@
       <ambient>0.8 0.5 1</ambient>
       <grid>false</grid>
       <sky>
-        <clouds>true</clouds>
+        <clouds>false</clouds>
       </sky>
       <shadows>1</shadows>
     </scene>
@@ -47,13 +47,50 @@
       <pose>205 155 -1 0 0 0</pose>
     </include>
     <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Coast Water
-      </uri>
-      <pose>0 0 -2 0 0 0
-        <relative_to>park</relative_to>
-      </pose>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Standing%20person</uri>
+      <name>patient</name>
+      <pose>1 0 0.02 -1.5708 0 0</pose>
+      <static>true</static>
     </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Standing%20person</uri>
+      <name>standing_person_2</name>
+      <pose>3 0 0 0 0 -1.5</pose>
+      <static>true</static>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Standing%20person</uri>
+      <name>standing_person_3</name>
+      <pose>2 1 0 0 0 -1.8</pose>
+      <static>true</static>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Prius Hybrid</uri>
+      <name>static_car</name>
+      <pose>-2.0 1.0 0 0 0 0</pose>
+      <static>true</static>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Prius Hybrid</uri>
+      <name>static_car_2</name>
+      <pose>2.0 -2.0 1.0 0 1.5 -1.68</pose>
+      <static>true</static>
+    </include>
+    <include>
+
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Prius Hybrid</uri>
+      <name>static_car_3</name>
+      <pose>-3.0 7.0 0 0 0 0.4</pose>
+      <static>true</static>
+    </include>
+
+    <include>
+      <uri>file:///home/developer/workspace/worlds/LandingPad</uri>
+      <name>landing_pad</name>
+      <pose>20 0 0 0 0 0</pose>
+      <static>true</static>
+    </include>
+    
     <spherical_coordinates>
       <surface_model>EARTH_WGS84</surface_model>
       <world_frame_orientation>ENU</world_frame_orientation>
