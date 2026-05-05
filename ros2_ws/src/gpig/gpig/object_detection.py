@@ -146,6 +146,7 @@ class ObjectDetectionNode(Node):
     self.declare_parameter("max_box_size", 200.0)
     self.declare_parameter("bias_value", 2.0)
     self.declare_parameter("show_debug_windows", False)
+    self.declare_parameter("previous_detections", None)
 
     self.image_topic = str(self.get_parameter("image_topic").value)
     self.annotated_topic = str(self.get_parameter("annotated_topic").value)
@@ -208,9 +209,12 @@ class ObjectDetectionNode(Node):
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
 
     detection_result = self.detector.detect(mp_image)
+    joint_detections = detection_result.detections + self.previous_detections.detections if self.previous_detections else detection_result.detections
+    self.previous_detections = detection_result
+  
     annotated, meta, weighted_map = visualize(
       frame_bgr.copy(),
-      detection_result,
+      joint_detections,
       self.box_threshold,
       self.detection_threshold,
       self.distance_from,
@@ -241,6 +245,7 @@ class ObjectDetectionNode(Node):
   def destroy_node(self) -> bool:
     if self.show_debug_windows:
       cv2.destroyAllWindows()
+   
     self.detector.close()
     return super().destroy_node()
 
