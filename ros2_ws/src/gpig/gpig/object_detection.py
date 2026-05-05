@@ -1,10 +1,16 @@
-import os
+import sys
+from io import StringIO
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-os.environ.setdefault("QT_QPA_FONTDIR", "/usr/share/fonts/truetype/dejavu")
+# genius method of suppressing warning by redirecting stderr
+old_stderr = sys.stderr
+sys.stderr = StringIO()
 
 import cv2
+
+sys.stderr = old_stderr
+
 import mediapipe as mp
 import numpy as np
 import rclpy
