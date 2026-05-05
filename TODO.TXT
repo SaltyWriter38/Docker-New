@@ -26,6 +26,16 @@ IMPLEMENTATION:
     -> visualise results of tom's code rather than camera output
     -> when we are near the destination, use tom's code to decide where to land (new state in the state machine)
 
+    -> takes way too long to decide it has arrived (does it even happen?)
+    -> make this threshold distance bigger
+    -> it should not be able to start flying again if trying to find a landing spot
+
+    -> coordinate for landing spot is not rotation invariant so that doesnt work -> need transform from local coords to map coords
+    -> vector to safe spot is in pixels !!!! probably going to be big
+
+    -> has to settle on a landing place even if the ai model is changing a bunch
+    -> land faster
+
 - integration with the server telling us where to go
     -> recieve coordinates from server
     -> constantly send current GPS to server
