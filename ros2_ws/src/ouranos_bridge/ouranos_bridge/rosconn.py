@@ -44,7 +44,7 @@ def handle_client(conn: socket.socket, addr: tuple, routes: dict):
             buffer += data.decode("utf-8")
             # Process all complete newline-terminated messages
             while "\n" in buffer:
-                line, buffer = buffer.split("\n", 1)
+                line, buffer = buffer.split("`", 1)
                 if not line.strip():
                     continue
                 route, message = parse_message(line)
@@ -70,7 +70,7 @@ def writer_thread(clients: list, stop_event: threading.Event):
             break
         if not line.strip():
             continue
-        packet = (line.strip() + "\n").encode("utf-8")
+        packet = (line.strip() + "`").encode("utf-8")
         dead = []
         for c in list(clients):
             try:

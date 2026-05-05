@@ -37,6 +37,10 @@ class OuranosBridge(Node):
         port = int(self.get_parameter('listen_port').value)
         tlm_hz = float(self.get_parameter('telemetry_hz').value)
 
+        self._home_ref_lat = None
+        self._home_ref_lon = None
+        self._home_ref_alt = None
+
         # ---- PX4 sensor data QoS (matches main.py exactly) ----
         px4_qos = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -91,6 +95,11 @@ class OuranosBridge(Node):
     def _on_local_position(self, msg: VehicleLocalPosition):
         """Cache the latest local position so the telemetry timer can format it."""
         self.latest_local_pos = msg
+
+        if msg.xy_global and msg.z_global:
+            self._home_ref_lat = msg.ref_lat
+            self._home_ref_lon =  msg.ref_lon
+            self._home_ref_alt = msg.ref_alt
 
     def _send_telemetry(self):
         """Build JSON telemetry from the cached PX4 state and send to all clients."""
@@ -195,8 +204,35 @@ class OuranosBridge(Node):
         else:
             self.get_logger().debug(f"Unhandled route [{route}]: {message}")
 
+    # def _handle_destination(self, message: str):
+    #     """Parse JSON destination from Ouranos and publish as geometry_msgs/Point."""
+    #     try:
+    #         data = json.loads(message)
+    #     except json.JSONDecodeError as e:
+    #         self.get_logger().warn(
+    #             f"Could not parse destination JSON: {e}. Raw: {message!r}"
+    #         )
+    #         return
+
+    #     try:
+    #         # Accept both {"X":..,"Y":..,"Z":..} and lowercase variants
+    #         x = float(data.get("X", data.get("x", 0.0)))
+    #         y = float(data.get("Y", data.get("y", 0.0)))
+    #         z = float(data.get("Z", data.get("z", 0.0)))
+    #     except (TypeError, ValueError) as e:
+    #         self.get_logger().warn(
+    #             f"Destination JSON missing/invalid fields: {e}. Raw: {data!r}"
+    #         )
+    #         return
+
+    #     msg = Point(x=x, y=y, z=z)
+    #     self.destination_pub.publish(msg)
+    #     self.get_logger().info(
+    #         f"Destination → /ouranos/destination: X={x}, Y={y}, Z={z}"
+    #     )
+
     def _handle_destination(self, message: str):
-        """Parse JSON destination from Ouranos and publish as geometry_msgs/Point."""
+        """Parse GPS destination from Ouranos, convert to NED, publish as Point."""
         try:
             data = json.loads(message)
         except json.JSONDecodeError as e:
@@ -204,23 +240,42 @@ class OuranosBridge(Node):
                 f"Could not parse destination JSON: {e}. Raw: {message!r}"
             )
             return
-
+    
+        # Ouranos sends GPS — accept common key variants
         try:
-            # Accept both {"X":..,"Y":..,"Z":..} and lowercase variants
-            x = float(data.get("X", data.get("x", 0.0)))
-            y = float(data.get("Y", data.get("y", 0.0)))
-            z = float(data.get("Z", data.get("z", 0.0)))
+            dest_lat = float(data.get("lat", data.get("latitude",  data.get("X"))))
+            dest_lon = float(data.get("lon", data.get("longitude", data.get("Y"))))
+            dest_alt = float(data.get("alt", data.get("altitude",  data.get("Z", 0.0))))
         except (TypeError, ValueError) as e:
             self.get_logger().warn(
                 f"Destination JSON missing/invalid fields: {e}. Raw: {data!r}"
             )
             return
-
-        msg = Point(x=x, y=y, z=z)
+    
+        # Make sure we have a home reference
+        if self._home_ref_lat is None:
+            self.get_logger().warn(
+                "Destination received but home GPS not yet known — ignoring. "
+                "Wait for EKF to converge and try again."
+            )
+            return
+    
+        # Equirectangular GPS → NED conversion (good for short ranges)
+        lat_to_m = 111_320.0
+        lon_to_m = 111_320.0 * math.cos(math.radians(self._home_ref_lat))
+    
+        north = (dest_lat - self._home_ref_lat) * lat_to_m
+        east  = (dest_lon - self._home_ref_lon) * lon_to_m
+        down  = -(dest_alt - self._home_ref_alt)  # PX4 NED: +Z is down
+    
+        msg = Point(x=north, y=east, z=down)
         self.destination_pub.publish(msg)
         self.get_logger().info(
-            f"Destination → /ouranos/destination: X={x}, Y={y}, Z={z}"
+            f"Destination GPS ({dest_lat:.6f}, {dest_lon:.6f}, {dest_alt:.1f}m) "
+            f"→ NED ({north:.2f}, {east:.2f}, {down:.2f}) "
+            f"[ref: ({self._home_ref_lat:.6f}, {self._home_ref_lon:.6f})]"
         )
+    
 
     # ────────────────────────────────────────────────
     #   Shutdown
