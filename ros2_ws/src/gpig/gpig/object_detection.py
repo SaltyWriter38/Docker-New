@@ -140,7 +140,7 @@ class ObjectDetectionNode(Node):
     self.declare_parameter("box_threshold", 0.1)
     self.declare_parameter("detection_threshold", 0.1)
     self.declare_parameter("distance_from", 3.0)
-    self.declare_parameter("max_box_size", 400.0)
+    self.declare_parameter("max_box_size", 200.0)
     self.declare_parameter("bias_value", 2.0)
     self.declare_parameter("show_debug_windows", False)
 
