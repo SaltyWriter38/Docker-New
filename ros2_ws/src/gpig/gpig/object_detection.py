@@ -209,8 +209,11 @@ class ObjectDetectionNode(Node):
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
 
     detection_result = self.detector.detect(mp_image)
-    joint_detections = detection_result.detections + self.previous_detections.detections if self.previous_detections else detection_result.detections
-    self.previous_detections = detection_result
+    if self.get_parameter("previous_detections").value is not None:
+      joint_detections = detection_result.detections + self.get_parameter("previous_detections").value
+    else:
+      joint_detections = detection_result.detections
+    self.previous_detections = detection_result.detections
   
     annotated, meta, weighted_map = visualize(
       frame_bgr.copy(),
