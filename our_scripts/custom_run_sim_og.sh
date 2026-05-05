@@ -33,9 +33,6 @@ ros2 run ros_gz_bridge parameter_bridge /camera@sensor_msgs/msg/Image[gz.msgs.Im
 #launch gazebo with the right world file and drone model
 WORLD_FILE="/home/developer/workspace/worlds/baylands.sdf"
 
-# Add custom models directory to Gazebo's search path
-export GZ_SIM_RESOURCE_PATH="/home/developer/workspace/models:$GZ_SIM_RESOURCE_PATH"
-
 #launch gazebo before px4 - px4 detects if gz is running when it starts
 gz sim -r -s "${WORLD_FILE}" &
 GZ_PID=$!
@@ -53,7 +50,4 @@ done
 
 #launch px4 with the gz_x500_depth model for the camera output
 cd /home/developer/workspace/PX4-Autopilot/build/px4_sitl_default/rootfs
-export PX4_GZ_MODEL_POSE="20,0,0,0,0,0"
-export PX4_GZ_MODEL="x500_depth"
-unset PX4_SIM_MODEL
-../bin/px4
+PX4_GZ_MODEL_POSE="20,0" PX4_SIM_MODEL=gz_x500_depth ../bin/px4
