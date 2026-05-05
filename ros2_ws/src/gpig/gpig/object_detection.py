@@ -167,6 +167,7 @@ class ObjectDetectionNode(Node):
     self.summary_pub = self.create_publisher(String, self.summary_topic, 10)
     self.image_sub = self.create_subscription(Image, self.image_topic, self.image_callback, 10)
 
+
     self.get_logger().info(f"Object detector ready with model: {resolved_model_path}")
 
   def _resolve_model_path(self) -> str:
@@ -208,6 +209,7 @@ class ObjectDetectionNode(Node):
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
 
     detection_result = self.detector.detect(mp_image)
+  
     annotated, meta, weighted_map = visualize(
       frame_bgr.copy(),
       detection_result,
@@ -241,6 +243,7 @@ class ObjectDetectionNode(Node):
   def destroy_node(self) -> bool:
     if self.show_debug_windows:
       cv2.destroyAllWindows()
+   
     self.detector.close()
     return super().destroy_node()
 
