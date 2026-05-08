@@ -1,40 +1,21 @@
-TODAY:
-    - put ros build script in custom run
-    - write a not shit readme
-    - integrate server
-    - pass position/rotation data to server
-
 IMPLEMENTATION:
 
-- see drone camera output
-    -> using gz_x500_depth and reading camera out on (... idk see luke uni pc documents for notes)
-    -> improve microxrce agent
+- pivot from landing to lowering a AED over the green square
+    -> make sure the drone fully stops when it wants to lower !!
+    -> no longer land and kill the node at this point, go back up and go elsewhere, back to base...
+
+- holding and dropping an object (crate of supplies)
 
 - improvements to world file
     -> really wants to be a town / urban area 
     -> would be nice to have models of accidents that the drone is going to fly to
 
-- holding and dropping an object (crate of supplies)
-
 - obstacle avoidance algorithm / getting back on track after avoiding an obstacle algorithm
 - NOTAM avoidance (make a data structure of some form)
 
-- integration with tom's AI landing system
-    -> visualise camera output
-    -> make his code a node
-    -> feed camera data to tom's code
-    -> visualise results of tom's code rather than camera output
-    -> when we are near the destination, use tom's code to decide where to land (new state in the state machine)
-
-    -> takes way too long to decide it has arrived (does it even happen?)
-    -> make this threshold distance bigger
-    -> it should not be able to start flying again if trying to find a landing spot
-
-    -> coordinate for landing spot is not rotation invariant so that doesnt work -> need transform from local coords to map coords
-    -> vector to safe spot is in pixels !!!! probably going to be big
-
-    -> has to settle on a landing place even if the ai model is changing a bunch
-    -> land faster
+- see drone camera output
+    -> using gz_x500_depth and reading camera out on (... idk see luke uni pc documents for notes)
+    -> improve microxrce agent
 
 - integration with the server telling us where to go
     -> recieve coordinates from server
@@ -47,3 +28,5 @@ TECH STUFF:
 
         can do that with colcon build --packages-select px4_msgs
         can we add this to a startup script or is that a nightmare?
+    
+    - merge run first time and run second time with an env variable
