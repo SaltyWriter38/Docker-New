@@ -22,8 +22,8 @@ class OffboardControl(Node):
     #image vector is in pixels, so we need a rough scale to convert to metres.
     #bullshit factors :D
     PIXEL_TO_METER_GAIN = 0.02
-    CLOSE_ENOUGH_THRESHOLD = 1.0
-    MAX_LANDING_STEP_METERS = 1.5
+    CLOSE_ENOUGH_THRESHOLD = 0.3
+    MAX_LANDING_STEP_METERS = 0.2
 
     #which way do we need to flip x and y for it to be correct in the image compared to the drone rotation
     #one or both might need minusing ??
@@ -212,7 +212,8 @@ class OffboardControl(Node):
 
         xy_error = math.hypot(self.TARGET_X - self.currentX, self.TARGET_Y - self.currentY)
         z_error = abs(target_z - self.currentZ) if self.currentZ is not None else float('inf')
-        self.arrived = (xy_error < self.ARR_RAD) and (z_error < 1.0)
+        if not self.arrived:
+            self.arrived = (xy_error < self.ARR_RAD) and (z_error < 1.0)
 
         self.publish_trajectory_setpoint(self.TARGET_X, self.TARGET_Y, target_z)
 
