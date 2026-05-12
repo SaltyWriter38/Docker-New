@@ -16,6 +16,9 @@ from px4_msgs.msg import VehicleLocalPosition
 # Reuse the parser from your peer's file so the wire format stays identical.
 from ouranos_bridge import rosconn
 
+BAYLANDS_REF_LAT = 37.412173
+BAYLANDS_REF_LON = -121.998878
+BAYLANDS_REF_ALT = 38.0
 
 class OuranosBridge(Node):
     """
@@ -92,14 +95,62 @@ class OuranosBridge(Node):
     #   ROS → Ouranos
     # ────────────────────────────────────────────────
 
+    # def _on_local_position(self, msg: VehicleLocalPosition):
+    #     """Cache the latest local position so the telemetry timer can format it."""
+    #     self.latest_local_pos = msg
+
+    #     if msg.xy_global and msg.z_global:
+    #         self._home_ref_lat = msg.ref_lat
+    #         self._home_ref_lon =  msg.ref_lon
+    #         self._home_ref_alt = msg.ref_alt
+
+    # def _on_local_position(self, msg: VehicleLocalPosition):
+    #     self.latest_local_pos = msg
+
+    #     if msg.xy_global and msg.z_global:
+    #         if self._home_ref_lat != msg.ref_lat:  # only log on change
+    #             self.get_logger().info(
+    #                 f"EKF home GPS updated: ({msg.ref_lat:.6f}, {msg.ref_lon:.6f}, {msg.ref_alt:.1f}m) "
+    #                 f"xy_global={msg.xy_global} z_global={msg.z_global}"
+    #             )
+    #         self._home_ref_lat = msg.ref_lat
+    #         self._home_ref_lon = msg.ref_lon
+    #         self._home_ref_alt = msg.ref_alt
+    #     else:
+    #         # Log rare cases where flags are false
+    #         if self._home_ref_lat is None and getattr(self, '_no_home_log_counter', 0) % 50 == 0:
+    #             self.get_logger().warn(
+    #                 f"Waiting for EKF global lock: xy_global={msg.xy_global}, z_global={msg.z_global}"
+    #             )
+    #         self._no_home_log_counter = getattr(self, '_no_home_log_counter', 0) + 1
     def _on_local_position(self, msg: VehicleLocalPosition):
         """Cache the latest local position so the telemetry timer can format it."""
         self.latest_local_pos = msg
 
-        if msg.xy_global and msg.z_global:
+        # PX4's hardcoded default ref is Zurich — reject it
+        is_px4_zurich_default = (
+            abs(msg.ref_lat - 47.397741) < 0.01 and
+            abs(msg.ref_lon - 8.545861) < 0.01
+        )
+
+        if msg.xy_global and msg.z_global and not is_px4_zurich_default:
+            if self._home_ref_lat != msg.ref_lat:
+                self.get_logger().info(
+                    f"EKF home GPS locked: ({msg.ref_lat:.6f}, {msg.ref_lon:.6f}, {msg.ref_alt:.1f}m)"
+                )
             self._home_ref_lat = msg.ref_lat
-            self._home_ref_lon =  msg.ref_lon
+            self._home_ref_lon = msg.ref_lon
             self._home_ref_alt = msg.ref_alt
+        elif is_px4_zurich_default and self._home_ref_lat is None:
+            # Use Baylands fallback since EKF is stuck on Zurich default
+            self._home_ref_lat = BAYLANDS_REF_LAT
+            self._home_ref_lon = BAYLANDS_REF_LON
+            self._home_ref_alt = BAYLANDS_REF_ALT
+            self.get_logger().warn(
+                f"EKF reporting Zurich default — using Baylands fallback "
+                f"({BAYLANDS_REF_LAT}, {BAYLANDS_REF_LON}, {BAYLANDS_REF_ALT}m)"
+            )
+
 
     def _send_telemetry(self):
         """Build JSON telemetry from the cached PX4 state and send to all clients."""

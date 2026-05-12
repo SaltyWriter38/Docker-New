@@ -1,0 +1,23 @@
+# Terminal 1: start sim
+./custom_run_sim.sh
+# wait for the usual ready for takeoff message
+
+# Terminal 2: start bridge
+./launch_bridge.sh
+# bridge can be started whilst custom_run_sim is booting up
+
+# Terminal 3: start main.py
+./run_mainPy.sh
+# launching main.py to not be affected by the other scripts
+
+# Terminal 4: monitor the ros topic /ouranos/destination to see the target destination coming in
+source /opt/ros/humble/setup.bash
+source /home/developer/workspace/ros2_ws/install/setup.bash
+
+export ROS_DOMAIN_ID=0
+
+ros2 topic echo /ouranos/destination
+
+# Terminal 5: send a test destination
+./send_destination.sh 1       # First destination (x = 0, y = -10, z = -5)
+./send_destination.sh 2       # Second destination (after drone arrives at first, x = -5, y = -10, z = -5)
