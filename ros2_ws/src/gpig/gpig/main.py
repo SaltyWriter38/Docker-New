@@ -10,9 +10,13 @@ import math
 
 class OffboardControl(Node):
 
+    START_X = -20.0
+    START_Y = 0.0
     #target x,y coordinates (these will come from the server and we need some method of recieveing / setting them)
-    TARGET_X = 0.0
-    TARGET_Y = 0.0 - 20
+    TARGET_X = 0.0 - START_Y
+    TARGET_Y = 0.0 - START_X
+    #THESE ARE NOT BACKWARDS - THE X AND Y IS FLIPPED !!!!
+
 
     TARGET_ALTITUDE = 10.0 #the altitude we want to be flying around at
     MOVEMENT_SPEED = 5.0 #normal movement speed in m/s
@@ -92,6 +96,13 @@ class OffboardControl(Node):
         self.landing_hold_counter = 0
         self.LANDING_HOLD_TICKS = 10  # require 1s hold before descend
         self.FINAL_LANDING_ALTITUDE = 2.5
+
+
+        #-- notam test stuff --
+        self.testNotam_x = 0.0
+        self.testNotam_y = 10.0
+        self.testNotam_radius = 5.0
+        self.notam_avoidance_margin = 2.0
 
     #-------------------------- PUBLISHERS ----------------------------
 
@@ -187,8 +198,8 @@ class OffboardControl(Node):
 
     def _on_destination(self, msg: Point):
         """Callback fired when the Ouranos dashboard sends a new destination."""
-        self.TARGET_X = float(msg.x)
-        self.TARGET_Y = float(msg.y)
+        self.TARGET_X = float(msg.x) - self.START_Y
+        self.TARGET_Y = float(msg.y) - self.START_X
         # Reset arrival flag so the drone re-plans toward the new target
         self.arrived = False
         self.landing_command_sent = False
@@ -344,7 +355,19 @@ class OffboardControl(Node):
         if self.counter % 20 == 0:
             self.get_logger().info(f"Fly-> target=({self.TARGET_X:.2f},{self.TARGET_Y:.2f}) pos=({self.currentX:.2f},{self.currentY:.2f}) xy_err={xy_error:.2f} z_err={z_error:.2f}")
 
-        self.publish_trajectory_setpoint(self.TARGET_X, self.TARGET_Y, target_z)
+        #do the notam avoidance pizzazz
+        if self.is_inside_notam():
+            avoid_x, avoid_y = self.compute_notam_avoidance_point()
+            if avoid_x is not None and avoid_y is not None:
+                self.get_logger().info(f"Inside NOTAM! Avoidance point: ({avoid_x:.2f}, {avoid_y:.2f})")
+                self.publish_trajectory_setpoint(avoid_x, avoid_y, target_z)
+                return
+            else:
+                self.get_logger().error("Failed to compute NOTAM avoidance point")
+
+        else:
+            #normal flying towards target
+            self.publish_trajectory_setpoint(self.TARGET_X, self.TARGET_Y, target_z)
 
     def land_the_drone(self):
         # New landing procedure:
@@ -452,8 +475,31 @@ class OffboardControl(Node):
                     self.landing_success_sent = True
                     self.get_logger().info("Reached 2.5m above spot — publishing success and hovering", once=True)
             return
+        
+    #TODO ADAPT THESE METHODS FOR HAVING A STRUCTURE OF SEVERAL NOTAMS, EACH OF WHICH IS SOME OBJECT WITH X Y R
+    def distance_to_notam_center(self):
+        if self.currentX is None or self.currentY is None:
+            return float('inf')
+        return math.hypot(self.currentX - self.testNotam_x, self.currentY - self.testNotam_y)   
+    
+    def is_inside_notam(self):
+        return self.distance_to_notam_center() < (self.testNotam_radius + self.notam_avoidance_margin)
+    
+    def compute_notam_avoidance_point(self):
+        if self.currentX is None or self.currentY is None:
+            return None, None
 
-
+        dx = self.currentX - self.testNotam_x
+        dy = self.currentY - self.testNotam_y
+        d = math.hypot(dx, dy)
+        if d < 1e-6:
+            ux, uy = 1.0, 0.0
+        else:
+            ux, uy = dx / d, dy / d
+        avoid_x = self.testNotam_x + ux * (self.testNotam_radius + self.notam_avoidance_margin)
+        avoid_y = self.testNotam_y + uy * (self.testNotam_radius + self.notam_avoidance_margin)
+        return avoid_x, avoid_y
+    
 def main(args=None):
     rclpy.init(args=args)
     node = OffboardControl()
@@ -466,3 +512,9 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
+# NOTAM: gets a central point (x,y) and a radius in metres
+# model this as an infinite height cylinder 
+# pathfind around this:
+#   if my current x/y coord in inside the cylinder, then what? move sideways by one radius + a bit
+#   does the drone know the radius of this notam cylinder ?

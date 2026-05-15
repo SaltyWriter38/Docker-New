@@ -53,7 +53,7 @@ done
 
 #launch px4 with the gz_x500_depth model for the camera output
 cd /home/developer/workspace/PX4-Autopilot/build/px4_sitl_default/rootfs
-export PX4_GZ_MODEL_POSE="20,0,0,0,0,0"
+export PX4_GZ_MODEL_POSE="-20,0,0,0,0,0"
 export PX4_GZ_MODEL="x500_depth"
 unset PX4_SIM_MODEL
 ../bin/px4
