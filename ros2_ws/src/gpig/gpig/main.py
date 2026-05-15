@@ -7,12 +7,15 @@ from std_msgs.msg import String
 
 import ast
 import math
+import json
 
 class OffboardControl(Node):
 
     #target x,y coordinates (these will come from the server and we need some method of recieveing / setting them)
-    TARGET_X = 0.0
-    TARGET_Y = 0.0 - 20
+    # TARGET_X = 0.0
+    # TARGET_Y = 0.0 - 20
+    TARGET_X = None
+    TARGET_Y = None
 
     TARGET_ALTITUDE = 10.0 #the altitude we want to be flying around at
     MOVEMENT_SPEED = 5.0 #normal movement speed in m/s
@@ -56,6 +59,20 @@ class OffboardControl(Node):
         self.create_subscription(VehicleControlMode, '/fmu/out/vehicle_control_mode', self.vehicle_control_mode_callback, qos_profile)
         self.create_subscription(Point, '/ouranos/destination', self._on_destination, 10)
         self.create_subscription(String, '/gpig/object_detection/summary', self.image_summary_callback, 10)
+
+        # NOTAM QoS must match bridge_node.py exactly: RELIABLE + TRANSIENT_LOCAL + KEEP_LAST(20).
+        # Mismatched durability/reliability will cause silent message-drops between the bridge and us.
+        notam_qos = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=20,
+        )
+        self.create_subscription(String, '/ouranos/notam', self._on_notam, notam_qos)
+
+        # Active NOTAMs keyed by id; reissuing the same id updates in place. Each value:
+        #   {"center_x": float, "center_y": float, "radius": float, "alt_min": float, "alt_max": float}
+        self.active_notams: dict[str, dict] = {}
 
         #CALLBACKS AND OTHER VARIABLES NOT KNOWN AT COMPILE TIME
         self.timer = self.create_timer(0.1, self.timer_callback) # 10Hz
@@ -196,7 +213,53 @@ class OffboardControl(Node):
         self.get_logger().info(
             f"New destination received from Ouranos: "
             f"TARGET_X={self.TARGET_X}, TARGET_Y={self.TARGET_Y}"
+            )
+
+    def _on_notam(self, msg: String):
+        """Receive a NOTAM cylinder from the bridge and store it in active_notams.
+
+        Payload schema (JSON in std_msgs/String):
+            {"id": str, "center_x": float, "center_y": float, "radius": float,
+             "alt_min": float, "alt_max": float}
+
+        Stored by id, so re-issuing the same NOTAM id updates it cleanly — gives
+        us a clean path for revisions and (later) cancellations.
+        """
+        try:
+            n = json.loads(msg.data)
+        except json.JSONDecodeError as e:
+            self.get_logger().warn(f"Bad NOTAM JSON: {e}. Raw: {msg.data!r}")
+            return
+
+        required = ("id", "center_x", "center_y", "radius", "alt_min", "alt_max")
+        missing = [k for k in required if k not in n]
+        if missing:
+            self.get_logger().warn(f"NOTAM missing field(s) {missing}: {n!r}")
+            return
+
+        try:
+            notam = {
+                "center_x": float(n["center_x"]),
+                "center_y": float(n["center_y"]),
+                "radius":   float(n["radius"]),
+                "alt_min":  float(n["alt_min"]),
+                "alt_max":  float(n["alt_max"]),
+            }
+        except (TypeError, ValueError) as e:
+            self.get_logger().warn(f"NOTAM field type error: {e}. Raw: {n!r}")
+            return
+
+        notam_id = str(n["id"])
+        is_update = notam_id in self.active_notams
+        self.active_notams[notam_id] = notam
+
+        self.get_logger().info(
+            f"NOTAM {'updated' if is_update else 'received'} [{notam_id}]: "
+            f"centre=({notam['center_x']:.2f}, {notam['center_y']:.2f}) "
+            f"radius={notam['radius']:.2f}m alt=[{notam['alt_min']:.1f}, {notam['alt_max']:.1f}]m. "
+            f"{len(self.active_notams)} active total."
         )
+
 
     #-------------------------- LANDING IMAGE PROCESSING ----------------------------
 
@@ -323,6 +386,13 @@ class OffboardControl(Node):
         #can be easily modified to take it as an argument
 
         target_z = self.target_z()
+        # No destination yet — hover at current position at mission altitude
+        if self.TARGET_X is None or self.TARGET_Y is None:
+            if self.counter % 50 == 0:
+                self.get_logger().info("Awaiting destination from Ouranos — hovering")
+            self.publish_hover_setpoint(x=self.currentX, y=self.currentY, z=target_z)
+            return
+
 
         if self.currentX is None:
             #have not yet heard from VehicleLocalPosition
