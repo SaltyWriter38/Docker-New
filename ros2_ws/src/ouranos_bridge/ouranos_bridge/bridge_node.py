@@ -36,9 +36,18 @@ class OuranosBridge(Node):
         self.declare_parameter('listen_port', 9091)
         self.declare_parameter('telemetry_hz', 5.0)
 
+
         host = self.get_parameter('listen_host').value
         port = int(self.get_parameter('listen_port').value)
         tlm_hz = float(self.get_parameter('telemetry_hz').value)
+
+        # NOTAM cylinders are floor-to-ceiling by default — model only gives us 2D (centre + radius).
+        # Tunable via --ros-args -p notam_default_alt_min:=... -p notam_default_alt_max:=...
+        self.declare_parameter('notam_default_alt_min', 0.0)
+        self.declare_parameter('notam_default_alt_max', 1000.0)
+        self._notam_default_alt_min = float(self.get_parameter('notam_default_alt_min').value)
+        self._notam_default_alt_max = float(self.get_parameter('notam_default_alt_max').value)
+
 
         self._home_ref_lat = None
         self._home_ref_lon = None
@@ -52,11 +61,25 @@ class OuranosBridge(Node):
             depth=1,
         )
 
+        notam_qos = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=20,
+        )
+
         # ---- PUBLISHERS: Ouranos → ROS ----
         # New destination received from the dashboard → main.py subscribes to this
         self.destination_pub = self.create_publisher(
             Point, '/ouranos/destination', 10,
         )
+
+        self.notam_pub = self.create_publisher(
+            String, '/ouranos/notam', notam_qos
+        )
+        # Counter for bridge-assigned NOTAM IDs when Ouranos doesn't supply one.
+        self._notam_counter = 0
+
         # Generic raw-message passthrough for any other route
         self.raw_pub = self.create_publisher(String, '/ouranos/raw', 10)
 
@@ -252,6 +275,8 @@ class OuranosBridge(Node):
 
         if route == "destination":
             self._handle_destination(message)
+        elif route == "notam":
+            self._handle_notam(message)
         else:
             self.get_logger().debug(f"Unhandled route [{route}]: {message}")
 
@@ -326,6 +351,120 @@ class OuranosBridge(Node):
             f"→ NED ({north:.2f}, {east:.2f}, {down:.2f}) "
             f"[ref: ({self._home_ref_lat:.6f}, {self._home_ref_lon:.6f})]"
         )
+
+    def _handle_notam(self, message: str):
+        """Parse a NOTAM from Ouranos and republish as a JSON cylinder spec.
+
+        Wire format from Ouranos (agreed contract):
+            {"x": <float>, "y": <float>, "radius": <float>}
+
+        Optional fields tolerated for forward-compatibility:
+            "id"       - stable identifier; bridge auto-assigns if missing
+            "alt_min"  - cylinder floor in metres (defaults to parameter)
+            "alt_max"  - cylinder ceiling in metres (defaults to parameter)
+
+        NOTAMs arrive in the same X/Y (NED-equivalent) frame the simulation
+        flies in — no GPS conversion needed (unlike destinations).
+
+        Republished on /ouranos/notam as std_msgs/String containing JSON:
+            {"id": "...", "center_x": ..., "center_y": ..., "radius": ...,
+             "alt_min": ..., "alt_max": ...}
+        """
+        try:
+            data = json.loads(message)
+        except json.JSONDecodeError as e:
+            self.get_logger().warn(
+                f"Could not parse NOTAM JSON: {e}. Raw: {message!r}"
+            )
+            return
+
+        # Defensive: tolerate the raw model output [x, y, radius] in case
+        # someone wires the model output through verbatim without re-wrapping.
+        if isinstance(data, list):
+            if len(data) != 3:
+                self.get_logger().warn(
+                    f"NOTAM list payload must be [x, y, radius]; got {data!r}"
+                )
+                return
+            data = {"x": data[0], "y": data[1], "radius": data[2]}
+
+        if not isinstance(data, dict):
+            self.get_logger().warn(
+                f"NOTAM payload must be JSON object or list; got {type(data).__name__}"
+            )
+            return
+
+        missing = [k for k in ("x", "y", "radius") if k not in data]
+        if missing:
+            self.get_logger().warn(
+                f"NOTAM missing required field(s) {missing}. Raw: {data!r}"
+            )
+            return
+
+        try:
+            cx = float(data["x"])
+            cy = float(data["y"])
+            radius = float(data["radius"])
+        except (TypeError, ValueError) as e:
+            self.get_logger().warn(
+                f"NOTAM x/y/radius must be numeric: {e}. Raw: {data!r}"
+            )
+            return
+
+        if not math.isfinite(radius) or radius <= 0.0:
+            self.get_logger().warn(
+                f"NOTAM radius must be positive and finite, got {radius}. Ignoring."
+            )
+            return
+        if not (math.isfinite(cx) and math.isfinite(cy)):
+            self.get_logger().warn(
+                f"NOTAM centre must be finite, got ({cx}, {cy}). Ignoring."
+            )
+            return
+
+        # Optional altitude band (defaults to floor-to-ceiling cylinder).
+        try:
+            alt_min = float(data.get("alt_min", self._notam_default_alt_min))
+            alt_max = float(data.get("alt_max", self._notam_default_alt_max))
+        except (TypeError, ValueError) as e:
+            self.get_logger().warn(
+                f"NOTAM alt_min/alt_max must be numeric: {e}. Using defaults."
+            )
+            alt_min = self._notam_default_alt_min
+            alt_max = self._notam_default_alt_max
+
+        if alt_max <= alt_min:
+            self.get_logger().warn(
+                f"NOTAM alt_max ({alt_max}) <= alt_min ({alt_min}); using defaults."
+            )
+            alt_min = self._notam_default_alt_min
+            alt_max = self._notam_default_alt_max
+
+        # Prefer an Ouranos-supplied ID; otherwise assign a stable bridge-local one.
+        notam_id = data.get("id")
+        if notam_id is None or notam_id == "":
+            notam_id = f"notam-{self._notam_counter}"
+            self._notam_counter += 1
+        notam_id = str(notam_id)
+
+        cylinder = {
+            "id": notam_id,
+            "center_x": cx,
+            "center_y": cy,
+            "radius": radius,
+            "alt_min": alt_min,
+            "alt_max": alt_max,
+        }
+
+        out = String()
+        out.data = json.dumps(cylinder)
+        self.notam_pub.publish(out)
+        self.get_logger().info(
+            f"NOTAM [{notam_id}] → /ouranos/notam: "
+            f"centre=({cx:.2f}, {cy:.2f}) radius={radius:.2f}m "
+            f"alt=[{alt_min:.1f}, {alt_max:.1f}]m"
+        )
+
     
 
     # ────────────────────────────────────────────────
