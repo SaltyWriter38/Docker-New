@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="group_people_cars">
+    <pose>0 0 0 0 0 0</pose>
+    <static>false</static>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Standing%20person</uri>
+      <name>patient</name>
+      <pose>1 0 0.02 -1.5708 0 0</pose>
+      <static>false</static>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Standing%20person</uri>
+      <name>standing_person_2</name>
+      <pose>3 0 0 0 0 -1.5</pose>
+      <static>false</static>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Standing%20person</uri>
+      <name>standing_person_3</name>
+      <pose>2 1 0 0 0 -1.8</pose>
+      <static>false</static>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Prius Hybrid</uri>
+      <name>static_car</name>
+      <pose>-2.0 1.0 0 0 0 0</pose>
+      <static>false</static>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Prius Hybrid</uri>
+      <name>static_car_2</name>
+      <pose>2.0 -2.0 1.0 0 0 -1.68</pose>
+      <static>false</static>
+    </include>
+
+    <include>
+        <uri>
+        https://fuel.gazebosim.org/1.0/hisuki/models/House</uri>
+        <pose>5 10.0 1.0 0 0 -1.68</pose>
+    <name>house</name>
+    </include>
+  </model>
+</sdf>
