@@ -56,7 +56,7 @@
     <include>
       <uri>file:///home/developer/workspace/worlds/LandingPad</uri>
       <name>landing_pad</name>
-      <pose>-20 0 2.0 0 0 0</pose>
+      <pose>-20 0 1 0 0 0</pose>
       <static>true</static>
     </include>
 

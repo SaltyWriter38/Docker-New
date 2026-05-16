@@ -24,7 +24,9 @@
     "--device=/dev/dri:/dev/dri",
     "--ipc=host",
     "--env", "NVIDIA_VISIBLE_DEVICES=all",
-    "--env", "NVIDIA_DRIVER_CAPABILITIES=all"
+    "--env", "NVIDIA_DRIVER_CAPABILITIES=all",
+    "--add-host=host.docker.internal:host-gateway",
+    "-p", "127.0.0.1:9091:9091"
   ],
   "postCreateCommand": "bash /home/developer/scripts/postCreation.sh",
   "customizations": {
