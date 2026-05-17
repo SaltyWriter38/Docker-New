@@ -1,0 +1,68 @@
+rosbag2_bagfile_information:
+  version: 5
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 152717629342
+  starting_time:
+    nanoseconds_since_epoch: 1779047017410214755
+  message_count: 10755
+  topics_with_message_count:
+    - topic_metadata:
+        name: /fmu/in/trajectory_setpoint
+        type: px4_msgs/msg/TrajectorySetpoint
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 2\n  durability: 1\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 1838
+    - topic_metadata:
+        name: /fmu/out/vehicle_control_mode
+        type: px4_msgs/msg/VehicleControlMode
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 2\n  durability: 1\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 131
+    - topic_metadata:
+        name: /ouranos/telemetry_echo
+        type: std_msgs/msg/String
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 764
+    - topic_metadata:
+        name: /fmu/out/vehicle_local_position
+        type: px4_msgs/msg/VehicleLocalPosition
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 2\n  durability: 1\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 7877
+    - topic_metadata:
+        name: /gpig/landing/status
+        type: std_msgs/msg/String
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 3
+    - topic_metadata:
+        name: /fmu/out/vehicle_status
+        type: px4_msgs/msg/VehicleStatus
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 2\n  durability: 1\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 131
+    - topic_metadata:
+        name: /ouranos/raw
+        type: std_msgs/msg/String
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 7
+    - topic_metadata:
+        name: /ouranos/destination
+        type: geometry_msgs/msg/Point
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 4
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - thesis_integration_run_01_0.mcap
+  files:
+    - path: thesis_integration_run_01_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 1779047017410214755
+      duration:
+        nanoseconds: 152717629342
+      message_count: 10755

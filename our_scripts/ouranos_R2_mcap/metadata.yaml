@@ -1,0 +1,56 @@
+rosbag2_bagfile_information:
+  version: 5
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 243666454039
+  starting_time:
+    nanoseconds_since_epoch: 1778965699296306960
+  message_count: 16100
+  topics_with_message_count:
+    - topic_metadata:
+        name: /fmu/out/vehicle_local_position
+        type: px4_msgs/msg/VehicleLocalPosition
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 2\n  durability: 1\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 14875
+    - topic_metadata:
+        name: /gpig/landing/status
+        type: std_msgs/msg/String
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 2\n  durability: 1\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 0
+    - topic_metadata:
+        name: /ouranos/destination
+        type: geometry_msgs/msg/Point
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 3
+    - topic_metadata:
+        name: /ouranos/notam
+        type: std_msgs/msg/String
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 1\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 0
+    - topic_metadata:
+        name: /ouranos/raw
+        type: std_msgs/msg/String
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 3
+    - topic_metadata:
+        name: /ouranos/telemetry_echo
+        type: std_msgs/msg/String
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 1219
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - ouranos_R2_mcap_0.mcap
+  files:
+    - path: ouranos_R2_mcap_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 1778965699296306960
+      duration:
+        nanoseconds: 243666454039
+      message_count: 16100

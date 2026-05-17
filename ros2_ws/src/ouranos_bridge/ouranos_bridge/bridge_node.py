@@ -58,10 +58,7 @@ class OuranosBridge(Node):
         self._listen_host           = self.get_parameter('listen_host').value
         self._listen_port           = int(self.get_parameter('listen_port').value)
         
-
-        # self._home_ref_lat = None
-        # self._home_ref_lon = None
-        # self._home_ref_alt = None
+        self._has_published_destination = False
 
         # ---- QoS profiles (must match main.py exactly) ----
         px4_qos = QoSProfile(
@@ -220,34 +217,6 @@ class OuranosBridge(Node):
                 daemon=True,
             )
             t.start()
-    
-    # def _inbound_reader_loop(self, sock: socket.socket, addr):
-    #     """Read newline-delimited <route>JSON from one inbound client until it closes."""
-    #     buffer = ""
-    #     try:
-    #         while not self.stop_event.is_set():
-    #             try:
-    #                 data = sock.recv(4096)
-    #             except OSError:
-    #                 break
-    #             if not data:
-    #                 break
-    #             buffer += data.decode("utf-8", errors="replace")
-    #             while "\n" in buffer:
-    #                 line, buffer = buffer.split("\n", 1)
-    #                 if not line.strip():
-    #                     continue
-    #                 route, message = rosconn.parse_message(line)
-    #                 self._dispatch(route, message)
-    #     finally:
-    #         with self._inbound_clients_lock:
-    #             if sock in self._inbound_clients:
-    #                 self._inbound_clients.remove(sock)
-    #         try:
-    #             sock.close()
-    #         except OSError:
-    #             pass
-    #         self.get_logger().info(f"Inbound client disconnected: {addr[0]}:{addr[1]}")
 
     def _inbound_reader_loop(self, sock: socket.socket, addr):
         """Read <route>{json} frames from one inbound client until it closes.
@@ -381,41 +350,86 @@ class OuranosBridge(Node):
         """Cache the latest local position so the telemetry timer can format it."""
         self.latest_local_pos = msg
 
-        # PX4's hardcoded default ref is Zurich — reject it
-        # is_px4_zurich_default = (
-        #     abs(msg.ref_lat - 47.397741) < 0.01 and
-        #     abs(msg.ref_lon - 8.545861) < 0.01
-        # )
+    # def _on_landing_status(self, msg: String):
+    #     """Forward landing completion back to the drone client.
 
-        # if msg.xy_global and msg.z_global and not is_px4_zurich_default:
-        #     if self._home_ref_lat != msg.ref_lat:
-        #         self.get_logger().info(
-        #             f"EKF home GPS locked: ({msg.ref_lat:.6f}, {msg.ref_lon:.6f}, {msg.ref_alt:.1f}m)"
-        #         )
-        #     self._home_ref_lat = msg.ref_lat
-        #     self._home_ref_lon = msg.ref_lon
-        #     self._home_ref_alt = msg.ref_alt
-        # elif is_px4_zurich_default and self._home_ref_lat is None:
-        #     self._home_ref_lat = BAYLANDS_REF_LAT
-        #     self._home_ref_lon = BAYLANDS_REF_LON
-        #     self._home_ref_alt = BAYLANDS_REF_ALT
-        #     self.get_logger().warn(
-        #         f"EKF reporting Zurich default — using Baylands fallback "
-        #         f"({BAYLANDS_REF_LAT}, {BAYLANDS_REF_LON}, {BAYLANDS_REF_ALT}m)"
-        #     )
+    #     flight.go's fly() loop exits when it receives <Data> (it calls
+    #     SendOdometryUpdate then sets DeliveryInProgress=false). We piggyback
+    #     on that path because <Delivered> and <Docked> in flight.go currently
+    #     keep DeliveryInProgress=true (looks like a bug on the Go side).
+    #     """
+    #     if not msg.data or not msg.data.startswith("landing_ready"):
+    #         return
+    #     payload = json.dumps({"status": msg.data})
+    #     line = f"<Delivered>{payload}\n"  
+    #     encoded = line.encode("utf-8")
+    #     with self._inbound_clients_lock:
+    #         clients = list(self._inbound_clients)
+    #     sent = 0
+    #     for c in clients:
+    #         try:
+    #             c.sendall(encoded)
+    #             sent += 1
+    #         except OSError:
+    #             pass
+    #     self.get_logger().info(
+    #         f"Landing complete → sent <Data> ack to {sent} inbound client(s)"
+    #     )
 
+    # def _on_landing_status(self, msg: String):
+    #     if not msg.data:
+    #         return
+
+    #     # Pick the right upstream route token based on the status string.
+    #     if msg.data.startswith("docked"):
+    #         route_token = "<Docked>"
+    #         log_label = "Docked at home"
+    #     elif msg.data.startswith("landing_ready"):
+    #         route_token = "<Delivered>"
+    #         log_label = "Delivery landing complete"
+    #     else:
+    #         self.get_logger().debug(f"Ignoring unrecognised landing status: {msg.data!r}")
+    #         return
+
+    #     payload = json.dumps({"status": msg.data})
+    #     line = f"{route_token}{payload}\n"
+    #     encoded = line.encode("utf-8")
+    #     with self._inbound_clients_lock:
+    #         clients = list(self._inbound_clients)
+    #     sent = 0
+    #     for c in clients:
+    #         try:
+    #             c.sendall(encoded)
+    #             sent += 1
+    #         except OSError:
+    #             pass
+    #     self.get_logger().info(
+    #         f"{log_label} → sent {route_token} to {sent} inbound client(s)"
+    #     )
+    
     def _on_landing_status(self, msg: String):
         """Forward landing completion back to the drone client.
 
-        flight.go's fly() loop exits when it receives <Data> (it calls
-        SendOdometryUpdate then sets DeliveryInProgress=false). We piggyback
-        on that path because <Delivered> and <Docked> in flight.go currently
-        keep DeliveryInProgress=true (looks like a bug on the Go side).
+        Routes 'docked_*' status strings as <Docked> (home-return / mission complete),
+        and 'landing_ready_*' as <Delivered> (delivery landing). flight.go's fly() loop
+        exits on either token, but the Go server treats them differently downstream:
+        <Delivered> → SignalDeliveryComplete; <Docked> → CurrentStatus=Docked + RestockDrone.
         """
-        if not msg.data or not msg.data.startswith("landing_ready"):
+        if not msg.data:
             return
+
+        if msg.data.startswith("docked"):
+            route_token = "<Docked>"
+            log_label = "Docked at home"
+        elif msg.data.startswith("landing_ready"):
+            route_token = "<Delivered>"
+            log_label = "Delivery landing complete"
+        else:
+            self.get_logger().debug(f"Ignoring unrecognised landing status: {msg.data!r}")
+            return
+
         payload = json.dumps({"status": msg.data})
-        line = f"<Data>{payload}"   # NB: no '\n' — matches the Go side's framing
+        line = f"{route_token}{payload}\n"
         encoded = line.encode("utf-8")
         with self._inbound_clients_lock:
             clients = list(self._inbound_clients)
@@ -427,8 +441,9 @@ class OuranosBridge(Node):
             except OSError:
                 pass
         self.get_logger().info(
-            f"Landing complete → sent <Data> ack to {sent} inbound client(s)"
+            f"{log_label} → sent {route_token} to {sent} inbound client(s)"
         )
+
 
 
     def _send_telemetry(self):
@@ -471,23 +486,6 @@ class OuranosBridge(Node):
     # ────────────────────────────────────────────────
     #   Ouranos → ROS
     # ────────────────────────────────────────────────
-
-    # def _dispatch(self, route: str, message: str):
-    #     """Translate Ouranos routes → ROS publications."""
-    #     raw = String(); raw.data = f"<{route}>{message}"
-    #     self.raw_pub.publish(raw)
-
-    #     # common.go uses mixed case (e.g. <Destination>, <notam>) — normalise.
-    #     route_lc = route.lower()
-    #     if route_lc == "destination":
-    #         self._handle_destination(message)
-    #     elif route_lc == "notam":
-    #         self._handle_notam(message)
-    #     elif route_lc in ("ping", "reply", "correct", "data"):
-    #         # Heartbeat/control traffic — log at debug only.
-    #         self.get_logger().debug(f"Control route [{route}]: {message}")
-    #     else:
-    #         self.get_logger().debug(f"Unhandled route [{route}]: {message}")
 
     def _dispatch(self, route: str, message: str):
         route_lc = route.lower()
@@ -563,215 +561,6 @@ class OuranosBridge(Node):
             )
             self._handle_destination(normalised)
 
-
-    # def _handle_destination(self, message: str):
-    #     """Parse GPS destination from Ouranos, convert to NED, publish as Point."""
-    #     try:
-    #         data = json.loads(message)
-    #     except json.JSONDecodeError as e:
-    #         self.get_logger().warn(f"Could not parse destination JSON: {e}. Raw: {message!r}")
-    #         return
-
-    #     try:
-    #         dest_lat = float(data.get("lat", data.get("latitude",  data.get("X"))))
-    #         dest_lon = float(data.get("lon", data.get("longitude", data.get("Y"))))
-    #         dest_alt = float(data.get("alt", data.get("altitude",  data.get("Z", 0.0))))
-    #     except (TypeError, ValueError) as e:
-    #         self.get_logger().warn(f"Destination JSON missing/invalid fields: {e}. Raw: {data!r}")
-    #         return
-
-    #     if self._home_ref_lat is None:
-    #         self.get_logger().warn(
-    #             "Destination received but home GPS not yet known — ignoring. "
-    #             "Wait for EKF to converge and try again."
-    #         )
-    #         return
-
-    #     lat_to_m = 111_320.0
-    #     lon_to_m = 111_320.0 * math.cos(math.radians(self._home_ref_lat))
-
-    #     north = (dest_lat - self._home_ref_lat) * lat_to_m
-    #     east  = (dest_lon - self._home_ref_lon) * lon_to_m
-    #     down  = -(dest_alt - self._home_ref_alt)
-
-    #     msg = Point(x=north, y=east, z=down)
-    #     self.destination_pub.publish(msg)
-    #     self.get_logger().info(
-    #         f"Destination GPS ({dest_lat:.6f}, {dest_lon:.6f}, {dest_alt:.1f}m) "
-    #         f"→ NED ({north:.2f}, {east:.2f}, {down:.2f}) "
-    #         f"[ref: ({self._home_ref_lat:.6f}, {self._home_ref_lon:.6f})]"
-    #     )
-
-    # def _handle_destination(self, message: str):
-    #     """Parse GPS destination from Ouranos, convert to NED, publish as Point.
-
-    #     Two payload shapes are accepted:
-    #       1. Drone client status dump (from flight.go):
-    #          {"Flight": {"Location": {"Lat": ..., "Lon": ...}, ...}, ...}
-    #       2. Flat shape for manual rosconn.py testing:
-    #          {"lat": ..., "lon": ..., "alt": ...}
-    #     """
-
-    #     if self._home_ref_lat is None:
-    #         self.get_logger().warn(
-    #             f"Destination received (lat={dest_lat}, lon={dest_lon}) but home GPS "
-    #             f"not yet known — IGNORING. latest_local_pos={self.latest_local_pos is not None}"
-    #         )
-    #         return
-
-
-    #     try:
-    #         data = json.loads(message)
-    #     except json.JSONDecodeError as e:
-    #         self.get_logger().warn(f"Could not parse destination JSON: {e}. Raw: {message!r}")
-    #         return
-
-    #     dest_lat = dest_lon = dest_alt = None
-    #     ticket_id = flight_id = None
-
-    #     # Shape 1: nested under Flight.Location (the real one from flight.go)
-    #     if isinstance(data, dict) and isinstance(data.get("Flight"), dict):
-    #         flight = data["Flight"]
-    #         loc = flight.get("Location") or {}
-    #         if "Lat" in loc and "Lon" in loc:
-    #             try:
-    #                 dest_lat = float(loc["Lat"])
-    #                 dest_lon = float(loc["Lon"])
-    #                 dest_alt = float(loc.get("Alt", self._home_ref_alt or 0.0))
-    #                 ticket_id = flight.get("TicketID")
-    #                 flight_id = flight.get("FlightID")
-    #             except (TypeError, ValueError) as e:
-    #                 self.get_logger().warn(
-    #                     f"Destination Flight.Location invalid: {e}. Raw: {loc!r}"
-    #                 )
-    #                 return
-
-    #     # Shape 2: flat keys (manual testing path)
-    #     if dest_lat is None and isinstance(data, dict):
-    #         try:
-    #             dest_lat = float(data.get("lat", data.get("latitude",  data.get("X"))))
-    #             dest_lon = float(data.get("lon", data.get("longitude", data.get("Y"))))
-    #             dest_alt = float(data.get("alt", data.get("altitude",  data.get("Z", 0.0))))
-    #         except (TypeError, ValueError) as e:
-    #             self.get_logger().warn(f"Destination JSON missing/invalid fields: {e}. Raw: {data!r}")
-    #             return
-
-    #     if dest_lat is None or dest_lon is None:
-    #         self.get_logger().warn(f"Destination JSON has no usable coordinates. Raw: {data!r}")
-    #         return
-
-    #     # Sanity check — drone client also sends Flight.Location={0,0} when idle/returning.
-    #     if abs(dest_lat) < 1e-6 and abs(dest_lon) < 1e-6:
-    #         self.get_logger().info(
-    #             "Destination is (0,0) — treating as 'no active flight', ignoring."
-    #         )
-    #         return
-
-    #     if self._home_ref_lat is None:
-    #         self.get_logger().warn(
-    #             "Destination received but home GPS not yet known — ignoring. "
-    #             "Wait for EKF to converge and try again."
-    #         )
-    #         return
-
-    #     lat_to_m = 111_320.0
-    #     lon_to_m = 111_320.0 * math.cos(math.radians(self._home_ref_lat))
-
-    #     north = (dest_lat - self._home_ref_lat) * lat_to_m
-    #     east  = (dest_lon - self._home_ref_lon) * lon_to_m
-    #     down  = -(dest_alt - self._home_ref_alt)
-
-    #     msg = Point(x=north, y=east, z=down)
-    #     self.destination_pub.publish(msg)
-    #     self.get_logger().info(
-    #         f"Destination GPS ({dest_lat:.6f}, {dest_lon:.6f}, {dest_alt:.1f}m) "
-    #         f"→ NED ({north:.2f}, {east:.2f}, {down:.2f}) "
-    #         f"[ticket={ticket_id} flight={flight_id} "
-    #         f"ref=({self._home_ref_lat:.6f}, {self._home_ref_lon:.6f})]"
-    #     )
-
-    # def _handle_destination(self, message: str):
-    #     """Parse GPS destination from Ouranos, convert to NED, publish as Point.
-
-    #     Two payload shapes are accepted:
-    #       1. Drone-client status dump from flight.go (the real one):
-    #          {"Flight": {"Location": {"Lat": ..., "Lon": ...}, "TicketID": ..., ...}, ...}
-    #       2. Flat shape for manual rosconn.py / netcat testing:
-    #          {"lat": ..., "lon": ..., "alt": ...}
-    #     """
-    #     self.get_logger().info("XYZZY-PATCH-V3 _handle_destination called")
-
-    #     try:
-    #         data = json.loads(message)
-    #     except json.JSONDecodeError as e:
-    #         self.get_logger().warn(f"Could not parse destination JSON: {e}. Raw: {message!r}")
-    #         return
-
-    #     dest_lat = dest_lon = dest_alt = None
-    #     ticket_id = flight_id = None
-
-    #     # Shape 1: nested under Flight.Location (flight.go's actual output)
-    #     if isinstance(data, dict) and isinstance(data.get("Flight"), dict):
-    #         flight = data["Flight"]
-    #         loc = flight.get("Location") or {}
-    #         if "Lat" in loc and "Lon" in loc:
-    #             try:
-    #                 dest_lat = float(loc["Lat"])
-    #                 dest_lon = float(loc["Lon"])
-    #                 dest_alt = float(loc.get("Alt", self._home_ref_alt or 0.0))
-    #                 ticket_id = flight.get("TicketID")
-    #                 flight_id = flight.get("FlightID")
-    #             except (TypeError, ValueError) as e:
-    #                 self.get_logger().warn(f"Flight.Location invalid: {e}. Raw: {loc!r}")
-    #                 return
-
-    #     # Shape 2: flat lowercase keys (manual testing)
-    #     if dest_lat is None and isinstance(data, dict):
-    #         lat_raw = data.get("lat", data.get("latitude", data.get("X")))
-    #         lon_raw = data.get("lon", data.get("longitude", data.get("Y")))
-    #         alt_raw = data.get("alt", data.get("altitude", data.get("Z", 0.0)))
-    #         if lat_raw is not None and lon_raw is not None:
-    #             try:
-    #                 dest_lat = float(lat_raw)
-    #                 dest_lon = float(lon_raw)
-    #                 dest_alt = float(alt_raw if alt_raw is not None else 0.0)
-    #             except (TypeError, ValueError) as e:
-    #                 self.get_logger().warn(f"Destination JSON invalid numeric fields: {e}. Raw: {data!r}")
-    #                 return
-
-    #     if dest_lat is None or dest_lon is None:
-    #         self.get_logger().warn(f"Destination JSON has no usable coordinates. Raw: {data!r}")
-    #         return
-
-    #     # flight.go initialises Flight.Location to client.Home (often {0,0}) before
-    #     # any flight is dispatched, and resets after delivery. Don't fly to the equator.
-    #     if abs(dest_lat) < 1e-6 and abs(dest_lon) < 1e-6:
-    #         self.get_logger().info("Destination is (0,0) — treating as 'no active flight', ignoring.")
-    #         return
-
-    #     if self._home_ref_lat is None:
-    #         self.get_logger().warn(
-    #             "Destination received but home GPS not yet known — ignoring. "
-    #             "Wait for EKF to converge and try again."
-    #         )
-    #         return
-
-    #     lat_to_m = 111_320.0
-    #     lon_to_m = 111_320.0 * math.cos(math.radians(self._home_ref_lat))
-
-    #     north = (dest_lat - self._home_ref_lat) * lat_to_m
-    #     east  = (dest_lon - self._home_ref_lon) * lon_to_m
-    #     down  = -(dest_alt - self._home_ref_alt)
-
-    #     msg = Point(x=north, y=east, z=down)
-    #     self.destination_pub.publish(msg)
-    #     self.get_logger().info(
-    #         f"Destination GPS ({dest_lat:.6f}, {dest_lon:.6f}, {dest_alt:.1f}m) "
-    #         f"→ NED ({north:.2f}, {east:.2f}, {down:.2f}) "
-    #         f"[ticket={ticket_id} flight={flight_id} "
-    #         f"ref=({self._home_ref_lat:.6f}, {self._home_ref_lon:.6f})]"
-    #     )
-
     def _handle_destination(self, message: str):
         """Parse an X/Y destination in the sim's local frame and publish as Point.
     
@@ -824,12 +613,13 @@ class OuranosBridge(Node):
     
         # flight.go initialises Flight.Location to client.Home (often {0,0}) before
         # any flight is dispatched. Treat that as 'no active flight'.
-        if abs(dest_x) < 1e-6 and abs(dest_y) < 1e-6:
+        if (abs(dest_x) < 1e-6 and abs(dest_y) < 1e-6 and ticket_id is None and not self._has_published_destination):
             self.get_logger().info("Destination is (0,0) — treating as 'no active flight', ignoring.")
             return
     
         msg = Point(x=dest_x, y=dest_y, z=0.0)
         self.destination_pub.publish(msg)
+        self._has_published_destination = True
         self.get_logger().info(
             f"Destination → /ouranos/destination: ({dest_x:.2f}, {dest_y:.2f}) "
             f"[ticket={ticket_id} flight={flight_id}]"

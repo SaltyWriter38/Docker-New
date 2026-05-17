@@ -1,0 +1,32 @@
+# /fmu/out/vehicle_local_position:
+#   reliability: best_effort
+#   durability: transient_local
+#   history: keep_last
+#   depth: 1
+
+# /fmu/in/trajectory_setpoint:
+#   reliability: best_effort
+#   durability: transient_local
+#   history: keep_last
+#   depth: 1
+
+/fmu/out/vehicle_local_position:
+  reliability: best_effort
+  durability: transient_local
+  history: keep_last
+  depth: 1
+/fmu/out/vehicle_status:
+  reliability: best_effort
+  durability: transient_local
+  history: keep_last
+  depth: 1
+/fmu/out/vehicle_control_mode:
+  reliability: best_effort
+  durability: transient_local
+  history: keep_last
+  depth: 1
+/fmu/in/trajectory_setpoint:
+  reliability: best_effort
+  durability: transient_local
+  history: keep_last
+  depth: 1

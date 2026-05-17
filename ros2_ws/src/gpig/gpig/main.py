@@ -11,11 +11,13 @@ import json
 
 class OffboardControl(Node):
 
-    START_X = -20.0
+    START_X = 0.0
     START_Y = 0.0
     #target x,y coordinates (these will come from the server and we need some method of recieveing / setting them)
-    TARGET_X = 0.0 - START_Y
-    TARGET_Y = 0.0 - START_X
+    # TARGET_X = 0.0 - START_Y
+    # TARGET_Y = 0.0 - START_X
+    TARGET_X = None
+    TARGET_Y = None
     #THESE ARE NOT BACKWARDS - THE X AND Y IS FLIPPED !!!!
 
     TARGET_ALTITUDE = 10.0 #the altitude we want to be flying around at
@@ -46,12 +48,19 @@ class OffboardControl(Node):
             depth=1
         )
 
+        status_qos = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability = DurabilityPolicy.VOLATILE,
+            history = HistoryPolicy.KEEP_LAST,
+            depth = 10
+        )
+
         #PUBLISHERS
         self.offboard_mode_pub = self.create_publisher(OffboardControlMode, '/fmu/in/offboard_control_mode', qos_profile)
         self.trajectory_pub = self.create_publisher(TrajectorySetpoint, '/fmu/in/trajectory_setpoint', qos_profile)
         self.command_pub = self.create_publisher(VehicleCommand, '/fmu/in/vehicle_command', qos_profile)
         # status publisher for landing outcome
-        self.status_pub = self.create_publisher(String, '/gpig/landing/status', qos_profile)
+        self.status_pub = self.create_publisher(String, '/gpig/landing/status', status_qos)
 
         #SUBSCRIBERS
         self.create_subscription(VehicleLocalPosition, '/fmu/out/vehicle_local_position', self.local_position_callback, qos_profile)
@@ -102,6 +111,7 @@ class OffboardControl(Node):
         #info about takeoff phase
         self.takeoff_complete = False
         # landing/approach state
+        self.is_home_return = False
         self.landing_spot_locked = False
         self.landing_spot_world = (None, None)
         self.landing_approach_started = False
@@ -212,14 +222,26 @@ class OffboardControl(Node):
 
     def _on_destination(self, msg: Point):
         """Callback fired when the Ouranos dashboard sends a new destination."""
-        self.TARGET_X = float(msg.x) - self.START_Y
-        self.TARGET_Y = float(msg.y) - self.START_X
+        self.TARGET_X = float(msg.x)
+        self.TARGET_Y = float(msg.y)
+
+        home_tol = 1.0
+        self.is_home_return = math.hypot(self.TARGET_X, self.TARGET_Y) <= home_tol
+
         # Reset arrival flag so the drone re-plans toward the new target
         self.arrived = False
         self.landing_command_sent = False
         # Don't reset takeoff_complete - we only need to take off once
+        # Reset landing state so the new flight gets a fresh state machine
+        self.landing_spot_locked = False
+        self.landing_spot_world = (None, None)
+        self.landing_descend_started = False
+        self.landing_success_sent = False
+        self.landing_hold_counter = 0
+        
+        leg = "HOME RETURN" if self.is_home_return else "Delivery"
         self.get_logger().info(
-            f"New destination received from Ouranos: "
+            f"New destination {leg} received from Ouranos: "
             f"TARGET_X={self.TARGET_X}, TARGET_Y={self.TARGET_Y}"
             )
 
@@ -499,7 +521,29 @@ class OffboardControl(Node):
                 self.get_logger().info(f"Vector-> body (fwd,right)=({body_forward_m:.2f},{body_right_m:.2f}) north_delta={north_delta:.2f} east_delta={east_delta:.2f}")
 
             else:
-                self.get_logger().info("Hovering and awaiting safe spot detection", once=True)
+                # self.get_logger().info("Hovering and awaiting safe spot detection", once=True)
+            # ----------------------------------------------------------
+                # THESIS BYPASS: object-detection node is not running, so
+                # /gpig/object_detection/summary has no publisher and
+                # safe_spot_found will never become True. Lock the current
+                # hover position as the landing spot so the rest of the
+                # state machine (approach → hold → descend → publish
+                # 'landing_ready_at_2.5m') can proceed and close the
+                # comms loop. Re-enable proper CV landing post-thesis.
+                # ----------------------------------------------------------
+                if self.currentX is not None and self.currentY is not None:
+                    self.landing_spot_world = (self.currentX, self.currentY)
+                    self.landing_spot_locked = True
+                    self.get_logger().info(
+                        f"[BYPASS] No object-detection node — locking current "
+                        f"position as landing spot X={self.currentX:.2f}, "
+                        f"Y={self.currentY:.2f}",
+                        once=True,
+                    )
+                else:
+                    self.get_logger().info(
+                        "Hovering — awaiting position fix before landing", once=True
+                    )
             return
 
         # 2) We have a locked landing spot -> approach it at mission altitude
@@ -537,7 +581,7 @@ class OffboardControl(Node):
             if self.currentZ is not None and abs(self.currentZ - final_z) <= 0.3:
                 if not self.landing_success_sent:
                     msg = String()
-                    msg.data = "landing_ready_at_2.5m"
+                    msg.data = "docked_at_home" if self.is_home_return else "landing_ready_at_2.5m"
                     self.status_pub.publish(msg)
                     self.landing_success_sent = True
                     self.get_logger().info("Reached 2.5m above spot — publishing success and hovering", once=True)
